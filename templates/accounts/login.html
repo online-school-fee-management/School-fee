@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-5 col-lg-4">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+          <h4 class="mb-1">Login</h4>
+          <p class="text-muted small mb-4">
+            {% if school %}{{ school.name }}{% else %}Platform login{% endif %}
+          </p>
+
+          {% if not school %}
+          <div class="alert alert-warning small">
+            Open your school's own address, for example
+            <code>demo.localhost:8000</code>. (Platform superusers: use <a href="/admin/">/admin/</a>.)
+          </div>
+          {% endif %}
+
+          {% if error %}<div class="alert alert-danger py-2">{{ error }}</div>{% endif %}
+
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <div class="mb-3">
+              <label class="form-label">Username / Student ID</label>
+              <input type="text" name="username" class="form-control" required autofocus>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input type="password" name="password" class="form-control" required>
+            </div>
+            <button class="btn btn-primary w-100" type="submit" {% if not school %}disabled{% endif %}>Sign in</button>
+          </form>
+          <p class="text-muted small mt-3 mb-0">Admin, Accountant, Teacher and Student all sign in here.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

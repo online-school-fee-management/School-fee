@@ -1,0 +1,35 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Edit Academic Year{% endblock %}
+
+{% block page %}
+<h4 class="mb-3">Edit Academic Year</h4>
+
+<div class="card border-0 shadow-sm" style="max-width: 520px;">
+  <div class="card-body">
+    {% for e in errors %}<div class="alert alert-danger py-2">{{ e }}</div>{% endfor %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Year name</label>
+        <input type="text" name="name" class="form-control" value="{{ form.name }}" required>
+      </div>
+      <div class="row">
+        <div class="col mb-3">
+          <label class="form-label">Start date</label>
+          <input type="date" name="start_date" class="form-control" value="{{ form.start_date }}">
+        </div>
+        <div class="col mb-3">
+          <label class="form-label">End date</label>
+          <input type="date" name="end_date" class="form-control" value="{{ form.end_date }}">
+        </div>
+      </div>
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="is_current" id="is_current" {% if form.is_current %}checked{% endif %}>
+        <label class="form-check-label" for="is_current">Current year</label>
+      </div>
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-light" href="{% url 'academics:year_list' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

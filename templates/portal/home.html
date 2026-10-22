@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Student Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h4 class="mb-1">Hello, {{ request.user.first_name|default:request.user.username }}</h4>
+  <p class="text-muted">{{ request.school.name }} · Student Portal</p>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100"><div class="card-body">
+        <i class="bi bi-exclamation-circle fs-3 text-danger"></i>
+        <h6 class="mt-2">My Due Fees</h6><p class="text-muted small mb-0">Coming in step 5</p>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100"><div class="card-body">
+        <i class="bi bi-credit-card fs-3 text-success"></i>
+        <h6 class="mt-2">Pay Now</h6><p class="text-muted small mb-0">Coming in step 5</p>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm h-100"><div class="card-body">
+        <i class="bi bi-clock-history fs-3 text-primary"></i>
+        <h6 class="mt-2">Payment History &amp; Receipt</h6><p class="text-muted small mb-0">Coming in step 5</p>
+      </div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}

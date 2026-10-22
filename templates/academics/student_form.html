@@ -1,0 +1,70 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{% if student %}Edit Student{% else %}Add Student{% endif %}{% endblock %}
+
+{% block page %}
+<h4 class="mb-3">{% if student %}Edit Student{% else %}Add Student{% endif %}</h4>
+
+{% if not classes or not years %}
+<div class="alert alert-warning">
+  Please add at least one <a href="{% url 'academics:year_list' %}">academic year</a>
+  and one <a href="{% url 'academics:class_list' %}">class</a> first.
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm" style="max-width: 720px;">
+  <div class="card-body">
+    {% for e in errors %}<div class="alert alert-danger py-2">{{ e }}</div>{% endfor %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Student ID <span class="text-muted small">(also the login username)</span></label>
+          <input type="text" name="student_id" class="form-control" value="{{ form.student_id }}" {% if student %}readonly{% else %}required{% endif %}>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Student name</label>
+          <input type="text" name="name" class="form-control" value="{{ form.name }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Father's name</label>
+          <input type="text" name="father_name" class="form-control" value="{{ form.father_name }}">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control" value="{{ form.phone }}">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Class</label>
+          <select name="school_class" class="form-select" required>
+            <option value="">Select class</option>
+            {% for c in classes %}<option value="{{ c.pk }}" {% if form.school_class == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Roll</label>
+          <input type="number" min="0" name="roll" class="form-control" value="{{ form.roll }}">
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Academic year</label>
+          <select name="academic_year" class="form-select" required>
+            <option value="">Select year</option>
+            {% for y in years %}<option value="{{ y.pk }}" {% if form.academic_year == y.pk|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+
+      {% if student %}
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if form.is_active %}checked{% endif %}>
+        <label class="form-check-label" for="is_active">Active (inactive students cannot log in)</label>
+      </div>
+      {% else %}
+      <p class="text-muted small">A student login is created automatically. The initial password is set in settings (<code>DEFAULT_STUDENT_PASSWORD</code>).</p>
+      {% endif %}
+
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-light" href="{% url 'academics:student_list' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Fees Setup{% endblock %}
+
+{% block page %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h4 class="mb-0">Fees Setup</h4>
+  <div class="d-flex gap-2">
+    {% if year and structures %}
+    <form method="post" action="{% url 'fees:fee_generate_all' %}">
+      {% csrf_token %}
+      <input type="hidden" name="year" value="{{ year.pk }}">
+      <button class="btn btn-outline-success" type="submit"><i class="bi bi-arrow-repeat me-1"></i>Generate all dues{% if any_missing %} <span class="badge bg-warning text-dark">new students</span>{% endif %}</button>
+    </form>
+    {% endif %}
+    <a class="btn btn-primary" href="{% url 'fees:fee_add' %}"><i class="bi bi-plus-lg me-1"></i>Add Fee</a>
+  </div>
+</div>
+
+{% if not years %}
+<div class="alert alert-warning">Add an <a href="{% url 'academics:year_list' %}">academic year</a> and <a href="{% url 'academics:class_list' %}">classes</a> first.</div>
+{% else %}
+
+<form method="get" class="card border-0 shadow-sm mb-3">
+  <div class="card-body row g-2 align-items-end">
+    <div class="col-md-3">
+      <label class="form-label small mb-1">Academic year</label>
+      <select name="year" class="form-select">
+        {% for y in years %}<option value="{{ y.pk }}" {% if year and year.pk == y.pk %}selected{% endif %}>{{ y.name }}{% if y.is_current %} (current){% endif %}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small mb-1">Class</label>
+      <select name="class" class="form-select">
+        <option value="">All classes</option>
+        {% for c in classes %}<option value="{{ c.pk }}" {% if class_id == c.pk %}selected{% endif %}>{{ c.label }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small mb-1">Type</label>
+      <select name="type" class="form-select">
+        <option value="">Annual + Exam</option>
+        <option value="annual" {% if fee_type == 'annual' %}selected{% endif %}>Annual</option>
+        <option value="exam" {% if fee_type == 'exam' %}selected{% endif %}>Exam</option>
+      </select>
+    </div>
+    <div class="col-md-3 d-flex gap-2">
+      <button class="btn btn-dark flex-fill" type="submit">Filter</button>
+      <a class="btn btn-light" href="{% url 'fees:fee_list' %}">Reset</a>
+    </div>
+  </div>
+</form>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Class</th><th>Type</th><th>Title</th><th class="text-end">Amount</th><th>Due date</th>
+          <th class="text-end">Students</th><th class="text-end">Expected</th><th class="text-end">Collected</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in structures %}
+        <tr {% if not s.is_active %}class="text-muted"{% endif %}>
+          <td class="fw-semibold">{{ s.school_class.label }}</td>
+          <td><span class="badge {% if s.fee_type == 'annual' %}bg-primary{% else %}bg-info text-dark{% endif %}">{{ s.get_fee_type_display }}</span></td>
+          <td>{{ s.title }}{% if not s.is_active %} <span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+          <td class="text-end">৳{{ s.amount|floatformat:2 }}</td>
+          <td>{{ s.due_date|date:"d M Y"|default:"—" }}</td>
+          <td class="text-end">{{ s.dues_count }}</td>
+          <td class="text-end">৳{{ s.total_net|default:0|floatformat:2 }}</td>
+          <td class="text-end">৳{{ s.collected|default:0|floatformat:2 }}</td>
+          <td class="text-end">
+            <div class="d-inline-flex gap-1">
+              {% if s.missing %}
+              <form method="post" action="{% url 'fees:fee_generate' s.pk %}">{% csrf_token %}
+                <button class="btn btn-sm btn-warning" type="submit" title="Create dues for students who do not have this fee yet">Generate dues ({{ s.missing }})</button>
+              </form>
+              {% endif %}
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'fees:fee_edit' s.pk %}">Edit</a>
+              <form method="post" action="{% url 'fees:fee_delete' s.pk %}" onsubmit="return confirm('Delete this fee and its unpaid dues?');">{% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" type="submit"><i class="bi bi-trash"></i></button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted py-4">No fees set up for this selection. Click “Add Fee”.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Edit Class{% endblock %}
+
+{% block page %}
+<h4 class="mb-3">Edit Class</h4>
+
+<div class="card border-0 shadow-sm" style="max-width: 520px;">
+  <div class="card-body">
+    {% for e in errors %}<div class="alert alert-danger py-2">{{ e }}</div>{% endfor %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Class name</label>
+        <input type="text" name="name" class="form-control" value="{{ form.name }}" required>
+      </div>
+      <div class="row">
+        <div class="col mb-3">
+          <label class="form-label">Section</label>
+          <input type="text" name="section" class="form-control" value="{{ form.section }}">
+        </div>
+        <div class="col mb-3">
+          <label class="form-label">Order</label>
+          <input type="number" min="0" name="order" class="form-control" value="{{ form.order }}">
+        </div>
+      </div>
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-light" href="{% url 'academics:class_list' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

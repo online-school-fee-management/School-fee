@@ -1,0 +1,89 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Add Fee{% endblock %}
+
+{% block page %}
+<h4 class="mb-3">Add Fee</h4>
+
+{% if not classes or not years %}
+<div class="alert alert-warning">
+  Please add at least one <a href="{% url 'academics:year_list' %}">academic year</a>
+  and one <a href="{% url 'academics:class_list' %}">class</a> first.
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm" style="max-width: 760px;">
+  <div class="card-body">
+    {% for e in errors %}<div class="alert alert-danger py-2">{{ e }}</div>{% endfor %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Fee type</label>
+          <select name="fee_type" class="form-select" required>
+            {% for value, label in type_choices %}<option value="{{ value }}" {% if form.fee_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-8 mb-3">
+          <label class="form-label">Title</label>
+          <input type="text" name="title" list="title-suggestions" class="form-control" placeholder="e.g. Annual Fee, 1st Term Exam" value="{{ form.title }}" required>
+          <datalist id="title-suggestions">
+            <option value="Annual Fee"><option value="Admission Fee"><option value="Session Fee">
+            <option value="1st Term Exam"><option value="2nd Term Exam"><option value="Final Exam"><option value="Model Test">
+          </datalist>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Academic year</label>
+          <select name="academic_year" class="form-select" required>
+            <option value="">Select year</option>
+            {% for y in years %}<option value="{{ y.pk }}" {% if form.academic_year == y.pk|stringformat:"s" %}selected{% endif %}>{{ y.name }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Amount (৳)</label>
+          <input type="number" name="amount" min="0.01" step="0.01" class="form-control" value="{{ form.amount }}" required>
+        </div>
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Due date <span class="text-muted small">(optional)</span></label>
+          <input type="date" name="due_date" class="form-control" value="{{ form.due_date }}">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <label class="form-label mb-1">Apply to classes</label>
+          <button type="button" class="btn btn-link btn-sm p-0" id="toggle-all">Select / clear all</button>
+        </div>
+        <div class="border rounded p-2 row g-1 mx-0">
+          {% for c in classes %}
+          <div class="col-6 col-md-4">
+            <div class="form-check">
+              <input class="form-check-input class-box" type="checkbox" name="classes" value="{{ c.pk }}" id="c{{ c.pk }}" {% if c.pk|stringformat:"s" in selected %}checked{% endif %}>
+              <label class="form-check-label" for="c{{ c.pk }}">{{ c.label }}</label>
+            </div>
+          </div>
+          {% empty %}
+          <div class="text-muted small p-2">No classes yet.</div>
+          {% endfor %}
+        </div>
+        <div class="form-text">The same fee is created for every ticked class (you can change amounts per class later from Edit).</div>
+      </div>
+
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="generate_now" id="generate_now" {% if form.generate_now %}checked{% endif %}>
+        <label class="form-check-label" for="generate_now">Create dues for the students of these classes now</label>
+      </div>
+
+      <button class="btn btn-primary" type="submit">Save Fee</button>
+      <a class="btn btn-light" href="{% url 'fees:fee_list' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('toggle-all').addEventListener('click', function () {
+    var boxes = document.querySelectorAll('.class-box');
+    var allOn = Array.prototype.every.call(boxes, function (b) { return b.checked; });
+    boxes.forEach(function (b) { b.checked = !allOn; });
+  });
+</script>
+{% endblock %}

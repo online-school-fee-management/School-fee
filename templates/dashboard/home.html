@@ -1,0 +1,28 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block page %}
+<h4 class="mb-1">Welcome, {{ request.user.first_name|default:request.user.username }}</h4>
+<p class="text-muted">{{ request.school.name }} · {{ request.user.get_role_display }}</p>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm"><div class="card-body">
+      <div class="text-muted small">Students</div>
+      <div class="fs-2 fw-semibold">{{ student_count }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm"><div class="card-body">
+      <div class="text-muted small">Classes</div>
+      <div class="fs-2 fw-semibold">{{ class_count }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm"><div class="card-body">
+      <div class="text-muted small">Current Academic Year</div>
+      <div class="fs-2 fw-semibold">{{ current_year.name|default:"—" }}</div>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Edit Fee{% endblock %}
+
+{% block page %}
+<h4 class="mb-1">Edit Fee</h4>
+<p class="text-muted">{{ fee.school_class.label }} · {{ fee.academic_year.name }}</p>
+
+<div class="card border-0 shadow-sm" style="max-width: 560px;">
+  <div class="card-body">
+    {% for e in errors %}<div class="alert alert-danger py-2">{{ e }}</div>{% endfor %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <label class="form-label">Fee type</label>
+          <select name="fee_type" class="form-select" required>
+            {% for value, label in type_choices %}<option value="{{ value }}" {% if form.fee_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-md-8 mb-3">
+          <label class="form-label">Title</label>
+          <input type="text" name="title" class="form-control" value="{{ form.title }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Amount (৳)</label>
+          <input type="number" name="amount" min="0.01" step="0.01" class="form-control" value="{{ form.amount }}" required>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label">Due date</label>
+          <input type="date" name="due_date" class="form-control" value="{{ form.due_date }}">
+        </div>
+      </div>
+
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" name="update_unpaid" id="update_unpaid">
+        <label class="form-check-label" for="update_unpaid">Also set the new amount on dues that have no payment yet</label>
+      </div>
+      {% if paid_count %}
+      <div class="form-text mb-3">{{ paid_count }} student(s) have already paid something; their dues keep the old amount.</div>
+      {% endif %}
+
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" name="is_active" id="is_active" {% if form.is_active %}checked{% endif %}>
+        <label class="form-check-label" for="is_active">Active (inactive fees create no new dues)</label>
+      </div>
+
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-light" href="{% url 'fees:fee_list' %}?year={{ fee.academic_year_id }}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

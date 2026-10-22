@@ -1,0 +1,73 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Import Students{% endblock %}
+
+{% block page %}
+<h4 class="mb-3">Import Students from Excel</h4>
+
+{% if result %}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body">
+    <h6>Import finished</h6>
+    <p class="mb-1"><span class="badge bg-success">{{ result.created }}</span> students added{% if result.new_classes %}, <span class="badge bg-info text-dark">{{ result.new_classes }}</span> new classes created{% endif %}.</p>
+    {% if result.skipped_total %}
+    <p class="mb-2"><span class="badge bg-warning text-dark">{{ result.skipped_total }}</span> rows skipped:</p>
+    <div class="table-responsive" style="max-height: 260px; overflow:auto;">
+      <table class="table table-sm table-bordered mb-0">
+        <thead class="table-light"><tr><th style="width:90px">Row</th><th>Reason</th></tr></thead>
+        <tbody>{% for row, reason in result.skipped %}<tr><td>{{ row }}</td><td>{{ reason }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    {% if result.skipped_total > result.skipped|length %}<div class="form-text">Showing the first {{ result.skipped|length }} skipped rows.</div>{% endif %}
+    {% endif %}
+    <a class="btn btn-primary btn-sm mt-3" href="{% url 'academics:student_list' %}">View students</a>
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Academic year for these students</label>
+            <select name="academic_year" class="form-select" required>
+              <option value="">Select year</option>
+              {% for y in years %}<option value="{{ y.pk }}" {% if y.is_current %}selected{% endif %}>{{ y.name }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Excel file (.xlsx, max 5 MB)</label>
+            <input type="file" name="file" class="form-control" accept=".xlsx" required>
+          </div>
+          <button class="btn btn-success" type="submit"><i class="bi bi-upload me-1"></i>Import</button>
+          <a class="btn btn-light" href="{% url 'academics:student_list' %}">Back</a>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h6>File format</h6>
+        <p class="small text-muted">The first row must be column names. Order does not matter.</p>
+        <table class="table table-sm small">
+          <tbody>
+            <tr><td><code>student_id</code></td><td>required, unique per school (becomes the login username)</td></tr>
+            <tr><td><code>name</code></td><td>required</td></tr>
+            <tr><td><code>class</code></td><td>required, e.g. Class 6 (created automatically if missing)</td></tr>
+            <tr><td><code>section</code></td><td>optional</td></tr>
+            <tr><td><code>roll</code></td><td>optional, number</td></tr>
+            <tr><td><code>father_name</code></td><td>optional</td></tr>
+            <tr><td><code>phone</code></td><td>optional</td></tr>
+          </tbody>
+        </table>
+        <p class="small text-muted mb-2">Every imported student gets the login password <code>{{ default_password }}</code>. Existing student IDs are skipped.</p>
+        <a class="btn btn-outline-secondary btn-sm" href="{% url 'academics:student_import_sample' %}"><i class="bi bi-download me-1"></i>Download sample file</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
