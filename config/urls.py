@@ -6,6 +6,7 @@ urlpatterns = [
     path("", include("tenants.urls")),
     path("", include("accounts.urls")),
     path("dashboard/staff/", include("accounts.staff_urls")),
+    path("dashboard/billing/", include("tenants.billing_urls")),
     path("dashboard/", include("dashboard.urls")),
     path("dashboard/", include("academics.urls")),
     path("dashboard/", include("fees.urls")),

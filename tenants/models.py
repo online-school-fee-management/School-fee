@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -91,6 +92,40 @@ class School(models.Model):
             "at_limit": limit is not None and used >= limit,
             "near_limit": bool(limit) and used < limit and used * 100 >= limit * 90,
         }
+
+
+class SubscriptionPayment(models.Model):
+    """A school paying US for a plan (not to be confused with students paying the school)."""
+
+    METHOD_DEMO = "demo"
+
+    school = models.ForeignKey(School, on_delete=models.CASCADE, related_name="subscription_payments")
+    plan = models.CharField(max_length=20)
+    months = models.PositiveSmallIntegerField()
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    method = models.CharField(max_length=20, default=METHOD_DEMO)
+    reference = models.CharField(max_length=100, blank=True)
+    period_start = models.DateTimeField()
+    period_end = models.DateTimeField()
+    paid_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True,
+        on_delete=models.SET_NULL, related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    @property
+    def invoice_no(self):
+        return f"INV-{self.pk:06d}"
+
+    @property
+    def plan_label(self):
+        return plans.get_plan(self.plan)["label"]
+
+    def __str__(self):
+        return f"{self.invoice_no} - {self.school.name} - {self.plan_label}"
 
 
 class SchoolOwnedModel(models.Model):
