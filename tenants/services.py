@@ -1,9 +1,12 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
 
 from academics.models import AcademicYear, SchoolClass
 
+from . import plans
 from .models import School
 
 User = get_user_model()
@@ -16,7 +19,7 @@ def create_school(*, name, subdomain, eiin, address, phone, email,
                   admin_name, admin_username, admin_password, seed_defaults=True):
     """
     Everything a new school needs to start working immediately:
-      - the School (tenant) itself, active right away
+      - the School (tenant) itself, active right away, on a free trial
       - its first admin user
       - optionally the current academic year and Class 1-10
     Runs in one transaction: either everything is created or nothing is.
@@ -24,6 +27,8 @@ def create_school(*, name, subdomain, eiin, address, phone, email,
     school = School.objects.create(
         name=name, subdomain=subdomain, eiin=eiin,
         address=address, phone=phone, email=email,
+        plan="trial",
+        plan_expires_at=timezone.now() + timedelta(days=plans.get_trial_days()),
     )
 
     admin = User(

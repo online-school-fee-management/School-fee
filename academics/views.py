@@ -30,6 +30,13 @@ def _to_int(value):
         return None
 
 
+def _limit_message(school):
+    return (
+        f"Your {school.effective_plan_label} plan allows up to {school.student_limit} students "
+        f"and you already have {school.students_used()}. Contact us to upgrade your plan."
+    )
+
+
 # ---------------------------------------------------------------------------
 # Academic Years
 # ---------------------------------------------------------------------------
@@ -126,7 +133,7 @@ def year_delete(request, pk):
         year.delete()
         messages.success(request, f"Academic year '{year.name}' deleted.")
     except ProtectedError:
-        messages.error(request, "This year is in use (students are linked to it) and cannot be deleted.")
+        messages.error(request, "This year is in use (students or fees are linked to it) and cannot be deleted.")
     return redirect("academics:year_list")
 
 
@@ -220,7 +227,7 @@ def class_delete(request, pk):
         obj.delete()
         messages.success(request, f"Class '{obj.label}' deleted.")
     except ProtectedError:
-        messages.error(request, "This class has students and cannot be deleted.")
+        messages.error(request, "This class has students or fees and cannot be deleted.")
     return redirect("academics:class_list")
 
 
@@ -320,6 +327,11 @@ def student_list(request):
 def student_add(request):
     school = request.school
     errors = []
+
+    # Plan limit: stop before the admin fills in the whole form.
+    if not school.can_add_students(1):
+        messages.error(request, _limit_message(school))
+        return redirect("academics:student_list")
 
     if request.method == "POST":
         form = request.POST
@@ -439,7 +451,11 @@ def _class_order(name):
     return int(match.group()) if match else 0
 
 
-def _run_import(school, year, upload):
+def _run_import(school, year, upload, limit=None):
+    """
+    limit = how many more students the school's plan allows (None = unlimited).
+    Rows beyond the limit are skipped and listed in the result.
+    """
     from openpyxl import load_workbook
 
     try:
@@ -502,12 +518,21 @@ def _run_import(school, year, upload):
 
         seen.add(sid)
         to_create.append({
+            "row": row_no,
             "student_id": sid, "name": name, "class": cname, "section": section,
             "father_name": get(row, "father_name"), "phone": get(row, "phone"),
             "roll": roll,
         })
 
     wb.close()
+
+    # Plan limit: keep only as many valid rows as the plan still allows.
+    limit_skipped = 0
+    if limit is not None and len(to_create) > limit:
+        for item in to_create[limit:]:
+            skipped.append((item["row"], "Student limit of your plan reached"))
+        limit_skipped = len(to_create) - limit
+        to_create = to_create[:limit]
 
     new_classes = 0
     if to_create:
@@ -549,11 +574,13 @@ def _run_import(school, year, upload):
                 for i in to_create
             ], batch_size=500)
 
+    skipped.sort(key=lambda item: item[0])
     return {
         "created": len(to_create),
         "new_classes": new_classes,
         "skipped": skipped[:200],
         "skipped_total": len(skipped),
+        "limit_skipped": limit_skipped,
     }
 
 
@@ -566,6 +593,7 @@ def student_import(request):
     if request.method == "POST":
         upload = request.FILES.get("file")
         year = years.filter(pk=_to_int(request.POST.get("academic_year"))).first()
+        remaining = school.students_remaining()
 
         if year is None:
             messages.error(request, "Please select an academic year.")
@@ -573,8 +601,10 @@ def student_import(request):
             messages.error(request, "Please choose an .xlsx Excel file.")
         elif upload.size > MAX_UPLOAD_BYTES:
             messages.error(request, "File is too large (max 5 MB).")
+        elif remaining == 0:
+            messages.error(request, _limit_message(school))
         else:
-            result = _run_import(school, year, upload)
+            result = _run_import(school, year, upload, limit=remaining)
             if result.get("fatal"):
                 messages.error(request, result["fatal"])
                 result = None
@@ -582,6 +612,7 @@ def student_import(request):
     return render(request, "academics/student_import.html", {
         "years": years, "result": result,
         "default_password": default_password(),
+        "quota": school.plan_info,  # read after the import so the numbers are fresh
     })
 
 

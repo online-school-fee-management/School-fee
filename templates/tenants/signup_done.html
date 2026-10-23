@@ -21,6 +21,13 @@
       </div>
       <p class="small text-muted">Save this address. Students and staff all log in here.</p>
 
+      {% if school.plan == 'trial' and school.plan_expires_at %}
+      <div class="alert alert-info py-2 small">
+        Your <strong>free trial</strong> has started and runs until
+        <strong>{{ school.plan_expires_at|date:"d M Y" }}</strong>.
+      </div>
+      {% endif %}
+
       <a class="btn btn-primary w-100 mb-4" href="{{ login_url }}">Log in to my school</a>
 
       <h6>What to do first</h6>

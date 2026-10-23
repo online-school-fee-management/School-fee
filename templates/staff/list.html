@@ -1,0 +1,62 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Staff{% endblock %}
+
+{% block page %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h4 class="mb-0">Staff</h4>
+    <div class="text-muted small">
+      Active staff accounts: <strong>{{ used }}{% if limit is not None %} / {{ limit }}{% endif %}</strong>
+    </div>
+  </div>
+  {% if at_limit %}
+  <button class="btn btn-primary" disabled title="Staff limit of your plan reached"><i class="bi bi-plus-lg me-1"></i>Add Staff</button>
+  {% else %}
+  <a class="btn btn-primary" href="{% url 'staff:add' %}"><i class="bi bi-plus-lg me-1"></i>Add Staff</a>
+  {% endif %}
+</div>
+
+{% if at_limit %}
+<div class="alert alert-warning py-2 small">
+  You have reached your plan's limit of {{ limit }} active staff accounts. Deactivate someone or contact us to upgrade.
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Name</th><th>Username</th><th>Role</th><th>Email</th><th>Last login</th><th>Status</th><th class="text-end">Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for s in staff %}
+        <tr {% if not s.is_active %}class="text-muted"{% endif %}>
+          <td class="fw-semibold">{{ s.first_name|default:"—" }}{% if s.pk == request.user.pk %} <span class="badge bg-light text-dark border">You</span>{% endif %}</td>
+          <td>{{ s.username }}</td>
+          <td><span class="badge {% if s.role == 'admin' %}bg-dark{% elif s.role == 'accountant' %}bg-primary{% else %}bg-info text-dark{% endif %}">{{ s.get_role_display }}</span></td>
+          <td class="small">{{ s.email|default:"—" }}</td>
+          <td class="small">{{ s.last_login|date:"d M Y, h:i A"|default:"Never" }}</td>
+          <td>{% if s.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+          <td class="text-end">
+            <div class="d-inline-flex gap-1">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'staff:edit' s.pk %}">Edit</a>
+              {% if s.pk != request.user.pk %}
+              <form method="post" action="{% url 'staff:reset_password' s.pk %}" onsubmit="return confirm('Reset the password of {{ s.username|escapejs }}? A new password will be shown once.');">{% csrf_token %}
+                <button class="btn btn-sm btn-outline-secondary" type="submit" title="Reset password"><i class="bi bi-key"></i></button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No staff yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="small text-muted mt-3 mb-0">
+  Staff are deactivated, not deleted, so old payment receipts keep showing who collected them.
+</p>
+{% endblock %}

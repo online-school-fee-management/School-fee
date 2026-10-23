@@ -23,6 +23,11 @@ def test_payments_enabled():
     return getattr(settings, "ALLOW_TEST_PAYMENTS", settings.DEBUG)
 
 
+def online_payment_available(request):
+    """Test mode is on AND the school's plan includes online payments."""
+    return test_payments_enabled() and request.school.allows("online_payments")
+
+
 def student_view(view):
     """Student role only, and the logged-in user must have a Student record."""
 
@@ -107,7 +112,7 @@ def pay(request, student, pk):
         messages.info(request, "This fee is already fully paid.")
         return redirect("portal:dues")
 
-    enabled = test_payments_enabled()
+    enabled = online_payment_available(request)
 
     if request.method == "POST":
         if not enabled or request.POST.get("gateway") != "test":

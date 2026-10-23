@@ -4,11 +4,24 @@
 {% block page %}
 <h4 class="mb-3">Import Students from Excel</h4>
 
+{% if quota.limit is not None %}
+<div class="alert {% if quota.at_limit %}alert-danger{% else %}alert-light border{% endif %} py-2 small">
+  {{ quota.label }} plan: <strong>{{ quota.used }} of {{ quota.limit }}</strong> students used.
+  {% if quota.at_limit %}You cannot add more students until you upgrade. Contact us to upgrade your plan.
+  {% else %}Valid rows beyond your plan's limit will be skipped.{% endif %}
+</div>
+{% endif %}
+
 {% if result %}
 <div class="card border-0 shadow-sm mb-4">
   <div class="card-body">
     <h6>Import finished</h6>
     <p class="mb-1"><span class="badge bg-success">{{ result.created }}</span> students added{% if result.new_classes %}, <span class="badge bg-info text-dark">{{ result.new_classes }}</span> new classes created{% endif %}.</p>
+    {% if result.limit_skipped %}
+    <div class="alert alert-warning py-2 small mt-2 mb-2">
+      <strong>{{ result.limit_skipped }}</strong> valid row{{ result.limit_skipped|pluralize }} were not imported because your plan's student limit was reached. Contact us to upgrade, then import the file again (students already added are skipped automatically).
+    </div>
+    {% endif %}
     {% if result.skipped_total %}
     <p class="mb-2"><span class="badge bg-warning text-dark">{{ result.skipped_total }}</span> rows skipped:</p>
     <div class="table-responsive" style="max-height: 260px; overflow:auto;">
@@ -19,6 +32,7 @@
     </div>
     {% if result.skipped_total > result.skipped|length %}<div class="form-text">Showing the first {{ result.skipped|length }} skipped rows.</div>{% endif %}
     {% endif %}
+    <p class="small text-muted mt-3 mb-0">Imported students do not have fees yet. Open <strong>Fees Setup</strong> and press <strong>Generate dues</strong>.</p>
     <a class="btn btn-primary btn-sm mt-3" href="{% url 'academics:student_list' %}">View students</a>
   </div>
 </div>

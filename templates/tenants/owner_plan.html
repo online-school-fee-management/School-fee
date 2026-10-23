@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Plan · {{ school.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 900px;">
+  <a class="text-decoration-none small" href="{% url 'tenants:owner' %}">← Owner panel</a>
+  <h4 class="mt-2 mb-0">{{ school.name }}</h4>
+  <p class="text-muted">{{ school.subdomain }}{% if school.eiin %} · EIIN {{ school.eiin }}{% endif %}</p>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body py-3">
+      <div class="text-muted small">Plan in effect today</div>
+      <div class="fs-5 fw-semibold">{{ info.label }}</div>
+      {% if info.expired %}<div class="small text-danger">{{ school.plan_label }} ended</div>{% endif %}
+    </div></div></div>
+    <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body py-3">
+      <div class="text-muted small">Valid until</div>
+      <div class="fs-5 fw-semibold">{% if info.key == 'free' %}—{% elif school.plan_expires_at %}{{ school.plan_expires_at|date:"d M Y" }}{% else %}No end date{% endif %}</div>
+      {% if info.days_left is not None %}<div class="small text-muted">{{ info.days_left }} day{{ info.days_left|pluralize }} left</div>{% endif %}
+    </div></div></div>
+    <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body py-3">
+      <div class="text-muted small">Students</div>
+      <div class="fs-5 fw-semibold {% if info.at_limit %}text-danger{% endif %}">{{ info.used }} / {{ info.limit|default_if_none:"∞" }}</div>
+    </div></div></div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="mb-3">Change plan</h6>
+          {% for e in errors %}<div class="alert alert-danger py-2">{{ e }}</div>{% endfor %}
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <div class="mb-3">
+              <label class="form-label">Plan</label>
+              <select name="plan" class="form-select">
+                {% for p in plan_list %}<option value="{{ p.key }}" {% if form.plan == p.key %}selected{% endif %}>{{ p.label }}</option>{% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Valid until <span class="text-muted small">(optional)</span></label>
+              <input type="date" name="expires" class="form-control" value="{{ form.expires }}">
+              <div class="form-text">
+                After this date the school drops to the Free plan automatically.
+                Leave empty for no end date. For a trial, empty means {{ trial_days }} days from today.
+                The Free plan never expires.
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Save plan</button>
+            <a class="btn btn-light" href="{% url 'tenants:owner' %}">Cancel</a>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body">
+          <h6 class="mb-3">What each plan includes</h6>
+          <table class="table table-sm align-middle mb-2">
+            <thead class="table-light"><tr><th>Plan</th><th class="text-end">Students</th><th class="text-end">Staff accounts</th><th class="text-center">Online payments</th></tr></thead>
+            <tbody>
+              {% for p in plan_list %}
+              <tr {% if p.key == info.key %}class="table-primary"{% endif %}>
+                <td>{{ p.label }}</td>
+                <td class="text-end">{{ p.student_limit|default_if_none:"Unlimited" }}</td>
+                <td class="text-end">{{ p.staff_limit|default_if_none:"Unlimited" }}</td>
+                <td class="text-center">{% if p.online_payments %}Yes{% else %}No{% endif %}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="small text-muted mb-0">These numbers live in <code>tenants/plans.py</code>. Change them there.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

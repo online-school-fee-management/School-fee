@@ -16,10 +16,53 @@
         <li class="nav-item"><a class="nav-link {% if ns == 'fees' %}active{% endif %}" href="{% url 'fees:fee_list' %}"><i class="bi bi-cash-coin me-2"></i>Fees Setup</a></li>
         <li class="nav-item"><a class="nav-link {% if ns == 'payments' %}active{% endif %}" href="{% url 'payments:payment_status' %}"><i class="bi bi-receipt me-2"></i>Payment Status</a></li>
         {% endif %}
+        {% if request.user.role == 'admin' %}
+        <li class="nav-item"><a class="nav-link {% if ns == 'staff' %}active{% endif %}" href="{% url 'staff:list' %}"><i class="bi bi-person-badge me-2"></i>Staff</a></li>
+        {% endif %}
       </ul>
+
+      {% if request.user.role == 'admin' %}
+      {% with p=request.school.plan_info %}
+      <div class="mt-4 p-2 rounded small" style="background: rgba(255,255,255,.08); color: #cfd8dc;">
+        <div class="fw-semibold text-white">{{ p.label }} plan</div>
+        {% if p.days_left is not None %}<div>{{ p.days_left }} day{{ p.days_left|pluralize }} left</div>{% endif %}
+        <div>Students: {{ p.used }}{% if p.limit is not None %} / {{ p.limit }}{% endif %}</div>
+        {% if p.percent is not None %}
+        <div class="progress mt-1" style="height: 4px;">
+          <div class="progress-bar {% if p.at_limit %}bg-danger{% elif p.near_limit %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ p.percent }}%;"></div>
+        </div>
+        {% endif %}
+      </div>
+      {% endwith %}
+      {% endif %}
     </aside>
 
     <main class="col-md-9 col-lg-10 p-4">
+      {% if request.user.role == 'admin' %}
+      {% with p=request.school.plan_info %}
+        {% if p.expired %}
+        <div class="alert alert-danger">
+          Your trial or plan has ended, so your school is now on the <strong>Free</strong> plan
+          (up to {{ p.limit }} students, no online payments). Your data is safe and you can keep collecting fees.
+          Contact us to upgrade.
+        </div>
+        {% elif p.at_limit %}
+        <div class="alert alert-danger">
+          You have reached your plan's limit of <strong>{{ p.limit }} students</strong>. Contact us to upgrade before adding more.
+        </div>
+        {% elif p.near_limit %}
+        <div class="alert alert-warning">
+          You are using <strong>{{ p.used }} of {{ p.limit }}</strong> students allowed on your plan.
+        </div>
+        {% elif p.days_left is not None and p.days_left <= 7 %}
+        <div class="alert alert-warning">
+          Your {{ p.label|lower }} ends in <strong>{{ p.days_left }} day{{ p.days_left|pluralize }}</strong>.
+          After that your school moves to the Free plan, which has lower limits and no online payments. Contact us to upgrade.
+        </div>
+        {% endif %}
+      {% endwith %}
+      {% endif %}
+
       {% block page %}{% endblock %}
     </main>
   </div>

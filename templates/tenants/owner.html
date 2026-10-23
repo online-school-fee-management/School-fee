@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Owner Panel{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4 px-md-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+    <h4 class="mb-0">Owner Panel <span class="text-muted fs-6">· all schools</span></h4>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="/admin/">Django admin</a>
+      <a class="btn btn-outline-success" href="{% url 'tenants:owner_export' %}?{{ request.GET.urlencode }}"><i class="bi bi-filetype-csv me-1"></i>Export CSV</a>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body py-3">
+      <div class="text-muted small">Schools</div><div class="fs-3 fw-semibold">{{ stats.total }}</div>
+      <div class="small text-muted">{{ stats.active }} active · {{ stats.suspended }} suspended</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body py-3">
+      <div class="text-muted small">New schools</div><div class="fs-3 fw-semibold">{{ stats.new_7d }}</div>
+      <div class="small text-muted">last 7 days · {{ stats.new_30d }} in 30 days</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body py-3">
+      <div class="text-muted small">Students (all schools)</div><div class="fs-3 fw-semibold">{{ stats.students }}</div></div></div></div>
+    <div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body py-3">
+      <div class="text-muted small">Fees collected (all schools)</div><div class="fs-3 fw-semibold text-success">৳{{ stats.payments_total|floatformat:2 }}</div>
+      <div class="small text-muted">{{ stats.payments_count }} payments</div></div></div></div>
+  </div>
+
+  <form method="get" class="card border-0 shadow-sm mb-3">
+    <div class="card-body row g-2 align-items-end">
+      <div class="col-md-6">
+        <label class="form-label small mb-1">Search</label>
+        <input type="text" name="q" class="form-control" placeholder="School name, web address, EIIN, address, email or phone" value="{{ q }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small mb-1">Status</label>
+        <select name="status" class="form-select">
+          <option value="">All</option>
+          <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+          <option value="suspended" {% if status == 'suspended' %}selected{% endif %}>Suspended</option>
+        </select>
+      </div>
+      <div class="col-md-3 d-flex gap-2">
+        <button class="btn btn-dark flex-fill" type="submit">Filter</button>
+        <a class="btn btn-light" href="{% url 'tenants:owner' %}">Reset</a>
+      </div>
+    </div>
+  </form>
+
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>School</th><th>Address</th><th>Contact</th><th>Admin</th>
+            <th>Plan</th><th class="text-end">Students</th><th>Registered</th><th>Status</th><th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in page_obj %}
+          <tr {% if not s.is_active %}class="table-secondary"{% endif %}>
+            <td>
+              <div class="fw-semibold">{{ s.name }}</div>
+              <div class="small text-muted">{{ s.subdomain }}{% if s.eiin %} · EIIN {{ s.eiin }}{% endif %}</div>
+            </td>
+            <td class="small">{{ s.address|default:"—" }}</td>
+            <td class="small">{{ s.phone|default:"—" }}<br>{{ s.email|default:"" }}</td>
+            <td class="small">{% for a in s.admins|slice:":1" %}{{ a.first_name|default:a.username }}<br><span class="text-muted">{{ a.username }}</span>{% empty %}—{% endfor %}</td>
+            <td class="small">
+              {% if s.is_plan_expired %}
+              <span class="badge bg-danger">{{ s.plan_label }} ended</span><br><span class="text-muted">now Free</span>
+              {% else %}
+              <span class="badge {% if s.plan == 'trial' %}bg-info text-dark{% elif s.plan == 'free' %}bg-secondary{% else %}bg-primary{% endif %}">{{ s.plan_label }}</span>
+              {% if s.plan_expires_at %}<br><span class="text-muted">until {{ s.plan_expires_at|date:"d M Y" }}</span>{% endif %}
+              {% endif %}
+            </td>
+            <td class="text-end {% if s.student_limit is not None and s.student_count >= s.student_limit %}text-danger fw-semibold{% endif %}">
+              {{ s.student_count }} / {{ s.student_limit|default_if_none:"∞" }}
+            </td>
+            <td class="small">{{ s.created_at|date:"d M Y" }}<br><span class="text-muted">{{ s.created_at|date:"h:i A" }}</span></td>
+            <td>{% if s.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-danger">Suspended</span>{% endif %}</td>
+            <td class="text-end">
+              <div class="d-inline-flex gap-1">
+                <a class="btn btn-sm btn-outline-secondary" href="{% url 'tenants:owner_plan' s.pk %}?next={{ current_url|urlencode }}">Plan</a>
+                {% if s.is_active %}<a class="btn btn-sm btn-outline-primary" href="{{ s.login_url }}" target="_blank">Open</a>{% endif %}
+                <form method="post" action="{% url 'tenants:owner_toggle' s.pk %}"
+                      onsubmit="return confirm('{% if s.is_active %}Suspend {{ s.name|escapejs }}? Nobody from this school will be able to log in.{% else %}Activate {{ s.name|escapejs }} again?{% endif %}');">
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ current_url }}">
+                  {% if s.is_active %}
+                  <button class="btn btn-sm btn-outline-danger" type="submit">Suspend</button>
+                  {% else %}
+                  <button class="btn btn-sm btn-success" type="submit">Activate</button>
+                  {% endif %}
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="9" class="text-center text-muted py-4">No schools found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="mt-3">
+    <ul class="pagination mb-0">
+      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a></li>{% endif %}
+      <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a></li>{% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

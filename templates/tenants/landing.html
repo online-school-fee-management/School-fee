@@ -54,7 +54,10 @@
     </div>
   </div>
   {% if request.user.is_superuser %}
-  <p class="mt-4 mb-0"><a href="/admin/">Platform admin →</a></p>
+  <p class="mt-4 mb-0">
+    <a class="btn btn-sm btn-outline-dark me-2" href="{% url 'tenants:owner' %}">Owner panel</a>
+    <a class="btn btn-sm btn-outline-secondary" href="/admin/">Django admin</a>
+  </p>
   {% endif %}
 </section>
 {% endblock %}
