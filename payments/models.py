@@ -12,12 +12,14 @@ class Payment(SchoolOwnedModel):
     METHOD_NAGAD = "nagad"
     METHOD_BANK = "bank"
     METHOD_OTHER = "other"
+    METHOD_ONLINE = "online"  # paid by the student in the portal (test mode for now)
     METHOD_CHOICES = [
         (METHOD_CASH, "Cash"),
         (METHOD_BKASH, "bKash"),
         (METHOD_NAGAD, "Nagad"),
         (METHOD_BANK, "Bank"),
         (METHOD_OTHER, "Other"),
+        (METHOD_ONLINE, "Online (test)"),
     ]
 
     # PROTECT: a due that has payments can never be deleted by accident

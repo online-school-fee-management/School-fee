@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% with n=request.resolver_match.url_name %}
+<div class="container py-4">
+  <ul class="nav nav-pills mb-4 gap-1">
+    <li class="nav-item"><a class="nav-link {% if n == 'home' %}active{% endif %}" href="{% url 'portal:home' %}"><i class="bi bi-house me-1"></i>Home</a></li>
+    <li class="nav-item"><a class="nav-link {% if n == 'dues' or n == 'pay' %}active{% endif %}" href="{% url 'portal:dues' %}"><i class="bi bi-exclamation-circle me-1"></i>My Due Fees</a></li>
+    <li class="nav-item"><a class="nav-link {% if n == 'history' %}active{% endif %}" href="{% url 'portal:history' %}"><i class="bi bi-clock-history me-1"></i>Payment History</a></li>
+  </ul>
+
+  {% block page %}{% endblock %}
+</div>
+{% endwith %}
+{% endblock %}

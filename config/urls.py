@@ -7,5 +7,6 @@ urlpatterns = [
     path("dashboard/", include("dashboard.urls")),
     path("dashboard/", include("academics.urls")),
     path("dashboard/", include("fees.urls")),
+    path("dashboard/", include("payments.urls")),
     path("portal/", include("portal.urls")),
 ]

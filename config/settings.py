@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "accounts",
     "academics",
     "fees.apps.FeesConfig",
+    "payments",
     "dashboard",
     "portal",
 ]

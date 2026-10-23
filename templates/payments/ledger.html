@@ -1,0 +1,108 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Student Fees{% endblock %}
+
+{% block page %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <div>
+    <h4 class="mb-0">{{ student.name }}</h4>
+    <div class="text-muted">{{ student.student_id }} · {{ student.school_class.label }}{% if student.roll is not None %} · Roll {{ student.roll }}{% endif %} · {{ student.academic_year.name }}{% if student.father_name %} · Father: {{ student.father_name }}{% endif %}</div>
+  </div>
+  <a class="btn btn-light" href="{% url 'payments:payment_status' %}"><i class="bi bi-arrow-left me-1"></i>Payment Status</a>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body py-3">
+    <div class="text-muted small">Total fees (after waiver)</div><div class="fs-4 fw-semibold">৳{{ total_net|floatformat:2 }}</div></div></div></div>
+  <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body py-3">
+    <div class="text-muted small">Paid</div><div class="fs-4 fw-semibold text-success">৳{{ total_paid|floatformat:2 }}</div></div></div></div>
+  <div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body py-3">
+    <div class="text-muted small">Due</div><div class="fs-4 fw-semibold text-danger">৳{{ total_due|floatformat:2 }}</div></div></div></div>
+</div>
+
+<h6 class="mb-2">Fees</h6>
+<div class="card border-0 shadow-sm mb-4">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Fee</th><th>Year</th><th class="text-end">Amount</th><th class="text-end">Waiver</th>
+          <th class="text-end">Paid</th><th class="text-end">Due</th><th>Status</th><th>Due date</th><th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in dues %}
+        <tr>
+          <td>{{ d.structure.title }} <span class="badge bg-light text-dark border">{{ d.structure.get_fee_type_display }}</span></td>
+          <td>{{ d.structure.academic_year.name }}</td>
+          <td class="text-end">৳{{ d.amount|floatformat:2 }}</td>
+          <td class="text-end">৳{{ d.waiver|floatformat:2 }}</td>
+          <td class="text-end">৳{{ d.paid_amount|floatformat:2 }}</td>
+          <td class="text-end fw-semibold">৳{{ d.due_amount|floatformat:2 }}</td>
+          <td>
+            {% if d.status == 'paid' %}<span class="badge bg-success">Paid</span>
+            {% elif d.status == 'partial' %}<span class="badge bg-warning text-dark">Partial</span>
+            {% else %}<span class="badge bg-danger">Unpaid</span>{% endif %}
+            {% if d.status != 'paid' and d.structure.due_date and d.structure.due_date < today %}<span class="badge bg-dark">Overdue</span>{% endif %}
+          </td>
+          <td>{{ d.structure.due_date|date:"d M Y"|default:"—" }}</td>
+          <td class="text-end">
+            <div class="d-inline-flex gap-1 align-items-start">
+              {% if d.status != 'paid' %}<a class="btn btn-sm btn-success" href="{% url 'payments:collect' d.pk %}">Collect</a>{% endif %}
+              {% if request.user.role == 'admin' %}
+              <details class="text-start">
+                <summary class="btn btn-sm btn-outline-secondary">Waiver</summary>
+                <form method="post" action="{% url 'payments:set_waiver' d.pk %}" class="border rounded bg-white p-2 mt-1 position-absolute shadow-sm" style="z-index: 5; min-width: 200px;">
+                  {% csrf_token %}
+                  <label class="form-label small mb-1">Waiver (৳)</label>
+                  <input type="number" name="waiver" min="0" step="0.01" class="form-control form-control-sm mb-2" value="{{ d.waiver }}">
+                  <button class="btn btn-sm btn-primary" type="submit">Save</button>
+                </form>
+              </details>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted py-4">No fees assigned to this student yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<h6 class="mb-2">Payment history</h6>
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Receipt</th><th>Date</th><th>Fee</th><th class="text-end">Amount</th><th>Method</th><th>Reference</th><th>Received by</th><th class="text-end"></th></tr>
+      </thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td class="fw-semibold">{{ p.receipt_no }}</td>
+          <td>{{ p.paid_at|date:"d M Y, h:i A" }}</td>
+          <td>{{ p.student_fee.structure.title }}</td>
+          <td class="text-end">৳{{ p.amount|floatformat:2 }}</td>
+          <td>{{ p.get_method_display }}</td>
+          <td>{{ p.reference|default:"—" }}</td>
+          <td>{{ p.received_by.first_name|default:p.received_by.username|default:"—" }}</td>
+          <td class="text-end">
+            <div class="d-inline-flex gap-1">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'payments:receipt' p.pk %}" target="_blank">Receipt</a>
+              {% if request.user.role == 'admin' %}
+              <form method="post" action="{% url 'payments:void' p.pk %}" onsubmit="return confirm('Void payment {{ p.receipt_no }}? The amount goes back to the due.');">{% csrf_token %}
+                <button class="btn btn-sm btn-outline-danger" type="submit">Void</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted py-4">No payments yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

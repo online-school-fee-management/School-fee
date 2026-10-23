@@ -1,30 +1,50 @@
-{% extends "base.html" %}
+{% extends "base_portal.html" %}
 {% block title %}Student Portal{% endblock %}
 
-{% block content %}
-<div class="container py-4">
-  <h4 class="mb-1">Hello, {{ request.user.first_name|default:request.user.username }}</h4>
-  <p class="text-muted">{{ request.school.name }} · Student Portal</p>
+{% block page %}
+<h4 class="mb-0">Hello, {{ student.name }}</h4>
+<p class="text-muted">{{ student.student_id }} · {{ student.school_class.label }}{% if student.roll is not None %} · Roll {{ student.roll }}{% endif %} · {{ student.academic_year.name }}</p>
 
-  <div class="row g-3">
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm h-100"><div class="card-body">
-        <i class="bi bi-exclamation-circle fs-3 text-danger"></i>
-        <h6 class="mt-2">My Due Fees</h6><p class="text-muted small mb-0">Coming in step 5</p>
-      </div></div>
-    </div>
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm h-100"><div class="card-body">
-        <i class="bi bi-credit-card fs-3 text-success"></i>
-        <h6 class="mt-2">Pay Now</h6><p class="text-muted small mb-0">Coming in step 5</p>
-      </div></div>
-    </div>
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm h-100"><div class="card-body">
-        <i class="bi bi-clock-history fs-3 text-primary"></i>
-        <h6 class="mt-2">Payment History &amp; Receipt</h6><p class="text-muted small mb-0">Coming in step 5</p>
-      </div></div>
-    </div>
+<div class="row g-3 mb-4">
+  <div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <div class="text-muted small">Total due</div>
+    <div class="fs-3 fw-semibold {% if total_due %}text-danger{% else %}text-success{% endif %}">৳{{ total_due|floatformat:2 }}</div>
+    <div class="small text-muted">{{ unpaid_count }} fee{{ unpaid_count|pluralize }} unpaid{% if overdue_count %} · <span class="text-danger">{{ overdue_count }} overdue</span>{% endif %}</div>
+  </div></div></div>
+  <div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <div class="text-muted small">Total paid</div>
+    <div class="fs-3 fw-semibold text-success">৳{{ total_paid|floatformat:2 }}</div>
+  </div></div></div>
+  <div class="col-md-4"><div class="card border-0 shadow-sm h-100"><div class="card-body">
+    <div class="text-muted small">Next fee to pay</div>
+    {% if next_due %}
+    <div class="fw-semibold">{{ next_due.structure.title }}</div>
+    <div class="small text-muted mb-2">৳{{ next_due.due_amount|floatformat:2 }}{% if next_due.structure.due_date %} · due {{ next_due.structure.due_date|date:"d M Y" }}{% endif %}</div>
+    <a class="btn btn-sm btn-success" href="{% url 'portal:pay' next_due.pk %}">Pay now</a>
+    {% else %}
+    <div class="fw-semibold text-success">All fees paid</div>
+    {% endif %}
+  </div></div></div>
+</div>
+
+<h6>Recent payments</h6>
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <tbody>
+        {% for p in recent %}
+        <tr>
+          <td class="fw-semibold">{{ p.receipt_no }}</td>
+          <td>{{ p.student_fee.structure.title }}</td>
+          <td>{{ p.paid_at|date:"d M Y" }}</td>
+          <td class="text-end">৳{{ p.amount|floatformat:2 }}</td>
+          <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'payments:receipt' p.pk %}?print=1" target="_blank">Download receipt</a></td>
+        </tr>
+        {% empty %}
+        <tr><td class="text-center text-muted py-4">No payments yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 {% endblock %}

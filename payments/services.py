@@ -35,15 +35,20 @@ def next_receipt_no(school):
 
 
 @transaction.atomic
-def record_payment(*, school, fee_id, amount, method, reference, note, user):
+def record_payment(*, school, fee_id, amount, method, reference, note, user, online=False):
     """
     Add a payment to a student's due and update the due's paid_amount.
-    The due row is locked, so two cashiers cannot overpay the same due.
+    The due row is locked, so two payments cannot overpay the same due.
+
+    online=True is passed only by the student portal; staff screens leave it
+    False, so staff cannot record a payment with the "online" method by hand.
     """
     fee = StudentFee.objects.select_for_update().get(pk=fee_id, school=school)
 
     if method not in METHODS:
         raise PaymentError("Please choose a payment method.")
+    if method == Payment.METHOD_ONLINE and not online:
+        raise PaymentError("This method can only be used for online payments.")
     if method != Payment.METHOD_CASH and not reference:
         raise PaymentError("Transaction ID / reference is required for this method.")
     if amount > fee.due_amount:

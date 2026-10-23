@@ -8,14 +8,14 @@
       <ul class="nav flex-column gap-1">
         <li class="nav-item"><a class="nav-link {% if ns == 'dashboard' %}active{% endif %}" href="{% url 'dashboard:home' %}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
         {% if request.user.role == 'admin' %}
-        <li class="nav-item"><a class="nav-link {% if 'year' in n %}active{% endif %}" href="{% url 'academics:year_list' %}"><i class="bi bi-calendar3 me-2"></i>Academic Year</a></li>
-        <li class="nav-item"><a class="nav-link {% if 'class' in n %}active{% endif %}" href="{% url 'academics:class_list' %}"><i class="bi bi-journal-bookmark me-2"></i>Classes</a></li>
+        <li class="nav-item"><a class="nav-link {% if ns == 'academics' and 'year' in n %}active{% endif %}" href="{% url 'academics:year_list' %}"><i class="bi bi-calendar3 me-2"></i>Academic Year</a></li>
+        <li class="nav-item"><a class="nav-link {% if ns == 'academics' and 'class' in n %}active{% endif %}" href="{% url 'academics:class_list' %}"><i class="bi bi-journal-bookmark me-2"></i>Classes</a></li>
         {% endif %}
-        <li class="nav-item"><a class="nav-link {% if 'student' in n %}active{% endif %}" href="{% url 'academics:student_list' %}"><i class="bi bi-people me-2"></i>Students</a></li>
+        <li class="nav-item"><a class="nav-link {% if ns == 'academics' and 'student' in n %}active{% endif %}" href="{% url 'academics:student_list' %}"><i class="bi bi-people me-2"></i>Students</a></li>
         {% if request.user.role == 'admin' or request.user.role == 'accountant' %}
         <li class="nav-item"><a class="nav-link {% if ns == 'fees' %}active{% endif %}" href="{% url 'fees:fee_list' %}"><i class="bi bi-cash-coin me-2"></i>Fees Setup</a></li>
+        <li class="nav-item"><a class="nav-link {% if ns == 'payments' %}active{% endif %}" href="{% url 'payments:payment_status' %}"><i class="bi bi-receipt me-2"></i>Payment Status</a></li>
         {% endif %}
-        <li class="nav-item"><a class="nav-link disabled" href="#"><i class="bi bi-receipt me-2"></i>Payment Status</a></li>
       </ul>
     </aside>
 

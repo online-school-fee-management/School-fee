@@ -1,0 +1,55 @@
+{% extends "base_portal.html" %}
+{% block title %}My Due Fees{% endblock %}
+
+{% block page %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h4 class="mb-0">My Due Fees</h4>
+  <div class="btn-group btn-group-sm">
+    <a class="btn {% if show == 'due' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?show=due">Unpaid only</a>
+    <a class="btn {% if show == 'all' %}btn-dark{% else %}btn-outline-dark{% endif %}" href="?show=all">All fees</a>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Fee</th><th>Year</th><th class="text-end">Amount</th><th class="text-end">Waiver</th>
+          <th class="text-end">Paid</th><th class="text-end">Due</th><th>Due date</th><th class="text-end"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in dues %}
+        <tr>
+          <td>{{ d.structure.title }} <span class="badge bg-light text-dark border">{{ d.structure.get_fee_type_display }}</span></td>
+          <td>{{ d.structure.academic_year.name }}</td>
+          <td class="text-end">৳{{ d.amount|floatformat:2 }}</td>
+          <td class="text-end">৳{{ d.waiver|floatformat:2 }}</td>
+          <td class="text-end">৳{{ d.paid_amount|floatformat:2 }}</td>
+          <td class="text-end fw-semibold">৳{{ d.due_amount|floatformat:2 }}</td>
+          <td>
+            {{ d.structure.due_date|date:"d M Y"|default:"—" }}
+            {% if d.due_amount > 0 and d.structure.due_date and d.structure.due_date < today %}<span class="badge bg-danger">Overdue</span>{% endif %}
+          </td>
+          <td class="text-end">
+            {% if d.due_amount > 0 %}
+            <a class="btn btn-sm btn-success" href="{% url 'portal:pay' d.pk %}">Pay now</a>
+            {% else %}
+            <span class="badge bg-success">Paid</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="text-center text-muted py-4">{% if show == 'due' %}You have no unpaid fees. 🎉{% else %}No fees assigned yet.{% endif %}</td></tr>
+        {% endfor %}
+      </tbody>
+      {% if dues and total_due %}
+      <tfoot>
+        <tr class="table-light fw-semibold"><td colspan="5" class="text-end">Total due</td><td class="text-end">৳{{ total_due|floatformat:2 }}</td><td colspan="2"></td></tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+{% endblock %}
