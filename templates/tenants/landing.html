@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}School Fee Management for Bangladeshi Schools{% endblock %}
+
+{% block content %}
+<section class="bg-white border-bottom">
+  <div class="container py-5">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <h1 class="display-5 fw-bold mb-3">Collect school fees online.<br>Set up in two minutes.</h1>
+        <p class="lead text-muted mb-4">
+          Register your school and get your own fee management site instantly: classes, students,
+          annual and exam fees, payment tracking, receipts and a portal for every student.
+        </p>
+        <a class="btn btn-primary btn-lg me-2" href="{% url 'tenants:signup' %}">Register your school</a>
+        <span class="text-muted small">Free to start · no card needed</span>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <h6 class="mb-1">Already registered?</h6>
+            <p class="text-muted small">Enter your school's address to go to your login page.</p>
+            {% if find_error %}<div class="alert alert-danger py-2">{{ find_error }}</div>{% endif %}
+            <form method="post" action="{% url 'tenants:find_school' %}">
+              {% csrf_token %}
+              <div class="input-group">
+                <input type="text" name="subdomain" class="form-control" placeholder="your-school" value="{{ find_value }}" required>
+                <button class="btn btn-dark" type="submit">Go to login</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container py-5">
+  <div class="row g-4">
+    <div class="col-md-4">
+      <i class="bi bi-building fs-2 text-primary"></i>
+      <h6 class="mt-2">Your own school site</h6>
+      <p class="text-muted small">Every school gets a private address like <code>your-school.{{ request.get_host }}</code> with its own admin, accountant, teacher and student logins.</p>
+    </div>
+    <div class="col-md-4">
+      <i class="bi bi-cash-coin fs-2 text-success"></i>
+      <h6 class="mt-2">Fees and payments</h6>
+      <p class="text-muted small">Set annual and exam fees per class, generate dues for every student, collect payments and print receipts.</p>
+    </div>
+    <div class="col-md-4">
+      <i class="bi bi-phone fs-2 text-info"></i>
+      <h6 class="mt-2">Student portal</h6>
+      <p class="text-muted small">Students and guardians see what is due, pay, and download receipts from a phone.</p>
+    </div>
+  </div>
+  {% if request.user.is_superuser %}
+  <p class="mt-4 mb-0"><a href="/admin/">Platform admin →</a></p>
+  {% endif %}
+</section>
+{% endblock %}

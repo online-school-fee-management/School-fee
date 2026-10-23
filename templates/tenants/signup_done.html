@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Your school is ready{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 640px;">
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-4 p-md-5">
+      <div class="text-center mb-4">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+        <h3 class="mt-2 mb-1">{{ school.name }} is ready!</h3>
+        <p class="text-muted mb-0">Your school site is live right now.</p>
+      </div>
+
+      <div class="border rounded p-3 mb-3 bg-light">
+        <div class="small text-muted">Your school address</div>
+        <div class="fw-semibold"><a href="{{ site_url }}">{{ site_url }}</a></div>
+        <div class="small text-muted mt-2">Administrator username</div>
+        <div class="fw-semibold">{{ username }}</div>
+        <div class="small text-muted mt-2">Password</div>
+        <div class="fw-semibold">the one you just chose</div>
+      </div>
+      <p class="small text-muted">Save this address. Students and staff all log in here.</p>
+
+      <a class="btn btn-primary w-100 mb-4" href="{{ login_url }}">Log in to my school</a>
+
+      <h6>What to do first</h6>
+      <ol class="small text-muted mb-0">
+        {% if seeded %}
+        <li>Check the academic year and classes we created for you.</li>
+        {% else %}
+        <li>Add your academic year and classes.</li>
+        {% endif %}
+        <li>Import your students from Excel (or add them one by one).</li>
+        <li>Set up annual and exam fees under <strong>Fees Setup</strong>.</li>
+        <li>Collect payments and give every student their login.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+{% endblock %}

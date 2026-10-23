@@ -14,6 +14,10 @@ def role_home(user):
 
 
 def home(request):
+    # Main domain (no school subdomain) = public landing + school signup.
+    if getattr(request, "school", None) is None:
+        return render(request, "tenants/landing.html")
+
     if request.user.is_authenticated:
         return redirect(role_home(request.user))
     return redirect("accounts:login")

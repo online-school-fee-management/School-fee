@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Register your school{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 860px;">
+  <h3 class="mb-1">Register your school</h3>
+  <p class="text-muted">Takes about two minutes. Your school site is ready immediately after you submit.</p>
+
+  {% for e in errors %}<div class="alert alert-danger py-2">{{ e }}</div>{% endfor %}
+
+  <form method="post" autocomplete="off">
+    {% csrf_token %}
+    {# Honeypot: hidden from people, bots tend to fill it #}
+    <div style="position:absolute; left:-9999px;" aria-hidden="true">
+      <input type="text" name="website" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body p-4">
+        <h6 class="mb-3"><span class="badge bg-primary me-2">1</span>School information</h6>
+        <div class="row">
+          <div class="col-md-8 mb-3">
+            <label class="form-label">School name</label>
+            <input type="text" name="school_name" id="school_name" class="form-control" maxlength="200" value="{{ form.school_name }}" required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label class="form-label">EIIN <span class="text-muted small">(optional)</span></label>
+            <input type="text" name="eiin" class="form-control" maxlength="10" inputmode="numeric" value="{{ form.eiin }}">
+          </div>
+          <div class="col-12 mb-3">
+            <label class="form-label">Your school's web address</label>
+            <div class="input-group">
+              <span class="input-group-text">{{ request.scheme }}://</span>
+              <input type="text" name="subdomain" id="subdomain" class="form-control" maxlength="30" placeholder="your-school" value="{{ form.subdomain }}" required>
+              <span class="input-group-text">.{{ base_host }}</span>
+            </div>
+            <div class="form-text" id="subdomain-hint">Lowercase letters, numbers and hyphens. Students will use this address to log in.</div>
+          </div>
+          <div class="col-12 mb-3">
+            <label class="form-label">Address</label>
+            <input type="text" name="address" class="form-control" maxlength="300" placeholder="Village/Area, Upazila, District" value="{{ form.address }}" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Contact phone</label>
+            <input type="tel" name="phone" class="form-control" maxlength="20" value="{{ form.phone }}" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">School email</label>
+            <input type="email" name="email" class="form-control" value="{{ form.email }}" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body p-4">
+        <h6 class="mb-3"><span class="badge bg-primary me-2">2</span>Administrator account</h6>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Your full name</label>
+            <input type="text" name="admin_name" class="form-control" maxlength="150" value="{{ form.admin_name }}" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" name="admin_username" class="form-control" maxlength="50" value="{{ form.admin_username }}" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Password <span class="text-muted small">(min 8 characters)</span></label>
+            <input type="password" name="password" class="form-control" minlength="8" autocomplete="new-password" required>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label">Confirm password</label>
+            <input type="password" name="password2" class="form-control" minlength="8" autocomplete="new-password" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="checkbox" name="seed_defaults" id="seed_defaults" {% if form.seed_defaults %}checked{% endif %}>
+      <label class="form-check-label" for="seed_defaults">Set up the current academic year and Class 1–10 for me (you can change them later)</label>
+    </div>
+    <div class="form-check mb-4">
+      <input class="form-check-input" type="checkbox" name="agree" id="agree" {% if form.agree %}checked{% endif %} required>
+      <label class="form-check-label" for="agree">I am authorized to register this school.</label>
+    </div>
+
+    <button class="btn btn-primary btn-lg" type="submit">Create my school</button>
+    <a class="btn btn-link" href="{% url 'accounts:home' %}">Cancel</a>
+  </form>
+</div>
+
+<script>
+  (function () {
+    var nameInput = document.getElementById('school_name');
+    var sub = document.getElementById('subdomain');
+    var hint = document.getElementById('subdomain-hint');
+    var original = hint.textContent;
+    var touched = sub.value !== '';
+    var timer = null;
+
+    function slugify(text) {
+      return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30);
+    }
+
+    function check() {
+      var value = sub.value.trim().toLowerCase();
+      if (!value) { hint.textContent = original; hint.className = 'form-text'; return; }
+      fetch("{% url 'tenants:check_subdomain' %}?name=" + encodeURIComponent(value))
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          hint.textContent = d.ok ? '✓ ' + d.message : d.message;
+          hint.className = 'form-text ' + (d.ok ? 'text-success' : 'text-danger');
+        });
+    }
+
+    sub.addEventListener('input', function () {
+      touched = true;
+      sub.value = sub.value.toLowerCase();
+      clearTimeout(timer);
+      timer = setTimeout(check, 350);
+    });
+
+    // Suggest an address from the school name until the user types their own.
+    nameInput.addEventListener('input', function () {
+      if (touched) return;
+      sub.value = slugify(nameInput.value);
+      clearTimeout(timer);
+      timer = setTimeout(check, 350);
+    });
+
+    if (sub.value) check();
+  })();
+</script>
+{% endblock %}
