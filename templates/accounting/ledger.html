@@ -1,0 +1,69 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{{ account_label }} Ledger{% endblock %}
+
+{% block page %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-4">
+  <div>
+    <a class="small text-decoration-none text-muted" href="{% url 'accounting:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Simple Accounts</a>
+    <h4 class="mb-1 mt-1">{{ account_label }} ledger</h4>
+    <p class="text-muted mb-0">Running record of money received and paid.</p>
+  </div>
+  <div class="btn-group">
+    <a class="btn {% if account_type == 'cash' %}btn-success{% else %}btn-outline-success{% endif %}" href="{% url 'accounting:ledger' %}?account=cash">Cash at Hand</a>
+    <a class="btn {% if account_type == 'bank' %}btn-primary{% else %}btn-outline-primary{% endif %}" href="{% url 'accounting:ledger' %}?account=bank">Cash at Bank</a>
+  </div>
+</div>
+
+<form method="get" class="card border-0 shadow-sm mb-3">
+  <input type="hidden" name="account" value="{{ account_type }}">
+  <div class="card-body row g-2 align-items-end">
+    <div class="col-sm-4"><label class="form-label small mb-1">From</label><input type="date" name="date_from" class="form-control" value="{{ date_from }}"></div>
+    <div class="col-sm-4"><label class="form-label small mb-1">To</label><input type="date" name="date_to" class="form-control" value="{{ date_to }}"></div>
+    <div class="col-sm-4 d-flex gap-2"><button class="btn btn-dark" type="submit">Show ledger</button><a class="btn btn-light" href="{% url 'accounting:ledger' %}?account={{ account_type }}">This month</a></div>
+  </div>
+</form>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Opening balance</div><div class="fs-5 fw-semibold">৳{{ opening_balance|floatformat:2 }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Received</div><div class="fs-5 fw-semibold text-success">৳{{ period_receipts|floatformat:2 }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card border-0 shadow-sm"><div class="card-body"><div class="text-muted small">Paid</div><div class="fs-5 fw-semibold text-danger">৳{{ period_payments|floatformat:2 }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card border-0 shadow-sm bg-dark text-white"><div class="card-body"><div class="small text-white-50">Closing balance</div><div class="fs-5 fw-semibold">৳{{ closing_balance|floatformat:2 }}</div></div></div></div>
+</div>
+
+{% if account_type == 'bank' and settings_obj.bank_name %}
+<div class="alert alert-light border small">
+  <i class="bi bi-bank me-1"></i>{{ settings_obj.bank_name }}{% if settings_obj.bank_account_number %} · A/C {{ settings_obj.bank_account_number }}{% endif %}
+</div>
+{% endif %}
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light"><tr><th>Date</th><th>Voucher</th><th>Description</th><th class="text-end">Received</th><th class="text-end">Paid</th><th class="text-end">Balance</th></tr></thead>
+      <tbody>
+        <tr class="table-light"><td>{{ date_from }}</td><td colspan="3" class="fw-semibold">Opening balance</td><td></td><td class="text-end fw-semibold">৳{{ opening_balance|floatformat:2 }}</td></tr>
+        {% for entry in entries %}
+        <tr>
+          <td class="small text-nowrap">{{ entry.entry_date|date:"d M Y" }}</td>
+          <td><a class="fw-semibold text-decoration-none" href="{% url 'accounting:entry_detail' entry.pk %}">{{ entry.voucher_no }}</a></td>
+          <td><div>{{ entry.party }}</div><div class="small text-muted">{{ entry.get_category_display }}{% if entry.reference %} · {{ entry.reference }}{% endif %}</div></td>
+          <td class="text-end text-success">{% if entry.transaction_type == 'receipt' %}৳{{ entry.amount|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td class="text-end text-danger">{% if entry.transaction_type == 'payment' %}৳{{ entry.amount|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td class="text-end fw-semibold">৳{{ entry.running_balance|floatformat:2 }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-5">No transactions in this period.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mt-3 gap-2">
+  <div class="small text-muted">Cash book starts on {{ settings_obj.opening_date|date:"d M Y" }}. Opening balances are set in <a href="{% url 'accounting:setup' %}">Setup</a>.</div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-sm btn-outline-success" href="{% url 'accounting:export' %}?account={{ account_type }}&date_from={{ date_from }}&date_to={{ date_to }}"><i class="bi bi-file-earmark-excel me-1"></i>Excel</a>
+    <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounting:export' %}?account={{ account_type }}&date_from={{ date_from }}&date_to={{ date_to }}&format=csv"><i class="bi bi-filetype-csv me-1"></i>CSV</a>
+  </div>
+</div>
+{% endblock %}

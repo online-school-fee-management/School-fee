@@ -43,6 +43,15 @@
             </select>
           </div>
           <div class="mb-3">
+            <label class="form-label">Money received into</label>
+            <select name="account_type" class="form-select" required>
+              {% for value, label in account_choices %}
+              <option value="{{ value }}" {% if form.account_type == value %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <div class="form-text">This automatically adds the collection to the selected cash-book ledger.</div>
+          </div>
+          <div class="mb-3">
             <label class="form-label">Transaction ID / reference <span class="text-muted small">(required unless cash)</span></label>
             <input type="text" name="reference" maxlength="100" class="form-control" value="{{ form.reference }}">
           </div>

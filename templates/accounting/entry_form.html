@@ -1,0 +1,62 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{% if target %}Edit {{ target.voucher_no }}{% else %}New Transaction{% endif %}{% endblock %}
+
+{% block page %}
+<div class="mb-4">
+  <a class="small text-decoration-none text-muted" href="{% if target %}{% url 'accounting:entry_detail' target.pk %}{% else %}{% url 'accounting:entries' %}{% endif %}"><i class="bi bi-arrow-left me-1"></i>{% if target %}Voucher{% else %}Receipts &amp; payments{% endif %}</a>
+  <h4 class="mb-1 mt-1">{% if target %}Edit {{ target.voucher_no }}{% else %}Record a transaction{% endif %}</h4>
+  <p class="text-muted mb-0">Enter the date the money actually moved. No debit or credit knowledge is needed.</p>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-4">
+            <label class="form-label d-block">Is money coming in or going out?</label>
+            <div class="row g-2">
+              {% for radio in form.transaction_type %}
+              <div class="col-sm-6">
+                <label class="border rounded-3 p-3 w-100 d-flex gap-2 align-items-center bg-body-tertiary" for="{{ radio.id_for_label }}">
+                  {{ radio.tag }}
+                  <span><strong>{{ radio.choice_label }}</strong></span>
+                </label>
+              </div>
+              {% endfor %}
+            </div>
+            {% for error in form.transaction_type.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+            {% if target %}<div class="form-text">To change a receipt into a payment, void this voucher and enter a new one.</div>{% endif %}
+          </div>
+
+          {% include "accounting/_field.html" with field=form.entry_date %}
+          {% include "accounting/_field.html" with field=form.account_type %}
+          {% include "accounting/_field.html" with field=form.category %}
+          {% include "accounting/_field.html" with field=form.party %}
+          {% include "accounting/_field.html" with field=form.amount %}
+          {% include "accounting/_field.html" with field=form.reference %}
+          {% include "accounting/_field.html" with field=form.description %}
+
+          <button class="btn btn-success" type="submit"><i class="bi bi-check2 me-1"></i>{% if target %}Save changes{% else %}Record transaction{% endif %}</button>
+          <a class="btn btn-light" href="{% if target %}{% url 'accounting:entry_detail' target.pk %}{% else %}{% url 'accounting:entries' %}{% endif %}">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-5">
+    <div class="card border-0 shadow-sm bg-body-tertiary">
+      <div class="card-body p-4">
+        <h6><i class="bi bi-info-circle me-1 text-success"></i>Simple guide</h6>
+        <div class="small text-muted mt-3">
+          <p><strong>Receipt:</strong> fee collection, donation, grant or any money received.</p>
+          <p><strong>Payment:</strong> salary, rent, utilities, supplies or any money paid.</p>
+          <p><strong>Cash at Hand:</strong> money physically in the school office.</p>
+          <p class="mb-0"><strong>Cash at Bank:</strong> money in the school bank account.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

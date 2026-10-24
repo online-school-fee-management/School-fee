@@ -35,7 +35,18 @@ def next_receipt_no(school):
 
 
 @transaction.atomic
-def record_payment(*, school, fee_id, amount, method, reference, note, user, online=False):
+def record_payment(
+    *,
+    school,
+    fee_id,
+    amount,
+    method,
+    reference,
+    note,
+    user,
+    online=False,
+    account_type=None,
+):
     """
     Add a payment to a student's due and update the due's paid_amount.
     The due row is locked, so two payments cannot overpay the same due.
@@ -66,6 +77,12 @@ def record_payment(*, school, fee_id, amount, method, reference, note, user, onl
     )
     fee.paid_amount += amount
     fee.save(update_fields=["paid_amount"])
+
+    # Keep the simple cash-book ledger in step with fee collections. The
+    # temporary online test method is skipped inside post_fee_payment.
+    from accounting.services import post_fee_payment
+
+    post_fee_payment(payment, account_type=account_type)
     return payment
 
 

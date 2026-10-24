@@ -15,7 +15,7 @@ User = get_user_model()
 STAFF_ROLES = ("admin", "accountant", "teacher")
 ROLE_CHOICES = [
     ("admin", "Admin (full access)"),
-    ("accountant", "Accountant (fees and payments)"),
+    ("accountant", "Accountant (fees, payments and accounts)"),
     ("teacher", "Teacher (view students)"),
 ]
 # no look-alike characters (0/O, 1/l/I) so a password can be read out or copied by hand

@@ -1,0 +1,72 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Import Transactions{% endblock %}
+
+{% block page %}
+<div class="mb-4">
+  <a class="small text-decoration-none text-muted" href="{% url 'accounting:entries' %}"><i class="bi bi-arrow-left me-1"></i>Receipts &amp; payments</a>
+  <h4 class="mb-1 mt-1">Import transactions from Excel</h4>
+  <p class="text-muted mb-0">Add many receipts or payments at once using the simple cash-book template.</p>
+</div>
+
+{% if result.errors %}
+<div class="card border-danger shadow-sm mb-4">
+  <div class="card-body">
+    <h6 class="text-danger">Nothing was imported</h6>
+    <p class="small text-muted">Correct the rows below and upload the file again.</p>
+    <div class="table-responsive" style="max-height:330px;overflow:auto;">
+      <table class="table table-sm mb-0"><thead class="table-light"><tr><th style="width:100px;">Row</th><th>Problem</th></tr></thead><tbody>
+        {% for row, reason in result.errors %}<tr><td>{{ row }}</td><td>{{ reason }}</td></tr>{% endfor %}
+      </tbody></table>
+    </div>
+    {% if result.error_total > result.errors|length %}<div class="form-text">Showing the first {{ result.errors|length }} of {{ result.error_total }} problem rows.</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Excel file</label>
+            <input type="file" name="file" class="form-control" accept=".xlsx" required>
+            <div class="form-text">Use the template below. Maximum 5 MB and 2,000 rows.</div>
+          </div>
+          <button class="btn btn-success" type="submit"><i class="bi bi-upload me-1"></i>Import transactions</button>
+          <a class="btn btn-light" href="{% url 'accounting:entries' %}">Cancel</a>
+        </form>
+        <a class="btn btn-outline-secondary btn-sm mt-4" href="{% url 'accounting:import_template' %}"><i class="bi bi-download me-1"></i>Download Excel template</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h6>Required columns</h6>
+        <table class="table table-sm small mt-3">
+          <tbody>
+            <tr><td><code>Type</code></td><td>Receipt or Payment</td></tr>
+            <tr><td><code>Date</code></td><td>Date the money moved</td></tr>
+            <tr><td><code>Account</code></td><td>Cash or Bank</td></tr>
+            <tr><td><code>Category</code></td><td>Choose a category from the template</td></tr>
+            <tr><td><code>Party</code></td><td>Who paid or who was paid</td></tr>
+            <tr><td><code>Amount</code></td><td>Number greater than zero</td></tr>
+            <tr><td><code>Reference</code></td><td>Optional slip or transaction number</td></tr>
+            <tr><td><code>Description</code></td><td>Optional explanation</td></tr>
+          </tbody>
+        </table>
+        <div class="alert alert-warning small mb-0"><i class="bi bi-shield-check me-1"></i>All rows are checked before import. If any row has a problem, nothing is imported.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm mt-4">
+  <div class="card-body">
+    <h6>Categories you can use</h6>
+    <div class="d-flex flex-wrap gap-2 mt-2">{% for value, label in categories %}<span class="badge bg-light text-dark border fw-normal">{{ label }}</span>{% endfor %}</div>
+  </div>
+</div>
+{% endblock %}

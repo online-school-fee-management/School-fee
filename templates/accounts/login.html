@@ -35,6 +35,11 @@
             <button class="btn btn-primary w-100" type="submit" {% if not school %}disabled{% endif %}>Sign in</button>
           </form>
           <p class="text-muted small mt-3 mb-0">Admin, Accountant, Teacher and Student all sign in here.</p>
+          {% if school %}
+          <a class="small text-decoration-none d-inline-block mt-2" href="{% url 'accounts:home' %}">
+            <i class="bi bi-arrow-left me-1"></i>Back to school website
+          </a>
+          {% endif %}
         </div>
       </div>
     </div>

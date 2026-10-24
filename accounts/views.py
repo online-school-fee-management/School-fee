@@ -3,6 +3,8 @@ from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
+from tenants.website_views import public_school_site
+
 
 def role_home(user):
     """Where each role lands after login."""
@@ -18,9 +20,7 @@ def home(request):
     if getattr(request, "school", None) is None:
         return render(request, "tenants/landing.html")
 
-    if request.user.is_authenticated:
-        return redirect(role_home(request.user))
-    return redirect("accounts:login")
+    return public_school_site(request)
 
 
 def login_view(request):

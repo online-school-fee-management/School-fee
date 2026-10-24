@@ -1,0 +1,45 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Notice Board{% endblock %}
+
+{% block page %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <div>
+    <a class="small text-decoration-none text-muted" href="{% url 'website:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>School Website</a>
+    <h4 class="mb-1 mt-1">Notice board</h4>
+    <p class="text-muted mb-0">Published notices appear on the public home page.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'website:notice_add' %}"><i class="bi bi-plus-lg me-1"></i>Add notice</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Notice</th><th>Published</th><th>Status</th><th class="text-end">Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for notice in notices %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ notice.title }}{% if notice.is_important %} <span class="badge bg-warning text-dark ms-1">Important</span>{% endif %}</div>
+            <div class="small text-muted text-truncate" style="max-width:520px;">{{ notice.content }}</div>
+          </td>
+          <td class="small text-nowrap">{{ notice.published_on|date:"d M Y" }}</td>
+          <td>{% if notice.is_active %}<span class="badge bg-success">Published</span>{% else %}<span class="badge bg-secondary">Hidden</span>{% endif %}</td>
+          <td class="text-end">
+            <div class="d-inline-flex gap-1">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'website:notice_edit' notice.pk %}">Edit</a>
+              <form method="post" action="{% url 'website:notice_delete' notice.pk %}" onsubmit="return confirm('Delete this notice?');">
+                {% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="text-center text-muted py-5">No notices yet. Add the first school announcement.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base_dashboard.html" %}
+{% block title %}{% if target %}Edit Teacher Profile{% else %}Add Teacher Profile{% endif %}{% endblock %}
+
+{% block page %}
+<div class="mb-4">
+  <a class="small text-decoration-none text-muted" href="{% url 'website:teachers' %}"><i class="bi bi-arrow-left me-1"></i>Teacher profiles</a>
+  <h4 class="mb-1 mt-1">{% if target %}Edit teacher{% else %}Add teacher{% endif %}</h4>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:760px;">
+  <div class="card-body p-4">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.non_field_errors }}
+      {% for field in form %}{% include "website/_field.html" with field=field %}{% endfor %}
+      <button class="btn btn-primary" type="submit">Save teacher</button>
+      <a class="btn btn-light" href="{% url 'website:teachers' %}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

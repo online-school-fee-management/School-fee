@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{% block meta_description %}{{ school.name }} school website{% endblock %}">
+  <title>{% block title %}{{ school.name }}{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --brand: #0d6b57;
+      --brand-dark: #084a3d;
+      --brand-soft: #e8f5f0;
+      --ink: #14231f;
+      --muted: #62706b;
+      --line: #dfe8e4;
+      --paper: #fbfcf9;
+      --white: #ffffff;
+      --gold: #d8a83e;
+      --shadow: 0 18px 50px rgba(18, 49, 40, .1);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "DM Sans", "Segoe UI", sans-serif;
+      line-height: 1.65;
+    }
+    img { display: block; max-width: 100%; }
+    a { color: inherit; }
+    .wrap { width: min(1160px, calc(100% - 40px)); margin-inline: auto; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      margin: 0 0 .8rem;
+      color: var(--brand);
+      font-size: .76rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before {
+      width: 1.8rem;
+      height: 2px;
+      background: var(--gold);
+      content: "";
+    }
+    h1, h2, h3 { margin-top: 0; font-family: "Fraunces", Georgia, serif; line-height: 1.12; }
+    p { margin-top: 0; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      min-height: 46px;
+      padding: .7rem 1.25rem;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font: inherit;
+      font-size: .93rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { color: #fff; background: var(--brand); box-shadow: 0 10px 24px rgba(13,107,87,.22); }
+    .btn-primary:hover { background: var(--brand-dark); }
+    .btn-light { color: var(--brand-dark); background: #fff; border-color: rgba(255,255,255,.7); }
+    .utility-bar {
+      color: rgba(255,255,255,.8);
+      background: var(--brand-dark);
+      font-size: .8rem;
+    }
+    .utility-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 35px;
+      gap: 1rem;
+    }
+    .utility-links { display: flex; align-items: center; gap: 1.2rem; }
+    .utility-links span { display: inline-flex; align-items: center; gap: .38rem; }
+    .utility-links a { text-decoration: none; }
+    .site-header {
+      position: sticky;
+      z-index: 30;
+      top: 0;
+      background: rgba(255,255,255,.94);
+      border-bottom: 1px solid rgba(20,35,31,.08);
+      backdrop-filter: blur(14px);
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 78px;
+      gap: 1.5rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: .8rem;
+      min-width: 0;
+      text-decoration: none;
+    }
+    .brand-logo, .brand-mark {
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      border-radius: 14px;
+      object-fit: contain;
+      background: var(--brand-soft);
+    }
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--brand);
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+    .brand-copy { min-width: 0; }
+    .brand-name {
+      display: block;
+      overflow: hidden;
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.16rem;
+      font-weight: 700;
+      line-height: 1.25;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .brand-sub {
+      display: block;
+      color: var(--muted);
+      font-size: .67rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .main-nav { display: flex; align-items: center; gap: 1.35rem; }
+    .main-nav a:not(.btn) {
+      color: #34443f;
+      font-size: .88rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .main-nav a:not(.btn):hover { color: var(--brand); }
+    .main-nav .btn { min-height: 40px; margin-left: .35rem; padding: .55rem 1rem; }
+    .nav-toggle {
+      display: none;
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      color: var(--ink);
+      background: #fff;
+      font-size: 1.2rem;
+    }
+    .hero {
+      position: relative;
+      display: grid;
+      min-height: 610px;
+      place-items: center;
+      overflow: hidden;
+      color: #fff;
+      background:
+        radial-gradient(circle at 82% 20%, rgba(255,255,255,.14) 0 10%, transparent 31%),
+        linear-gradient(125deg, #073d33 0%, var(--brand) 56%, #328b71 100%);
+    }
+    .hero::after {
+      position: absolute;
+      right: -120px;
+      bottom: -190px;
+      width: 520px;
+      height: 520px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 50%;
+      box-shadow: 0 0 0 75px rgba(255,255,255,.04), 0 0 0 150px rgba(255,255,255,.025);
+      content: "";
+    }
+    .hero.has-image::before {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, rgba(3,34,28,.9), rgba(3,34,28,.48) 62%, rgba(3,34,28,.28)),
+        var(--hero-image) center / cover no-repeat;
+      content: "";
+    }
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      padding-block: 100px;
+    }
+    .hero-content { max-width: 750px; }
+    .hero .eyebrow { color: #d9efe7; }
+    .hero h1 {
+      max-width: 780px;
+      margin-bottom: 1.25rem;
+      font-size: clamp(2.7rem, 6.3vw, 5.3rem);
+      letter-spacing: -.035em;
+    }
+    .hero-copy {
+      max-width: 630px;
+      margin-bottom: 2rem;
+      color: rgba(255,255,255,.82);
+      font-size: clamp(1rem, 2vw, 1.2rem);
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+    .hero-note {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      margin-top: 2.4rem;
+      color: rgba(255,255,255,.72);
+      font-size: .8rem;
+    }
+    .hero-note span { display: inline-flex; align-items: center; gap: .45rem; }
+    .section { padding-block: 95px; }
+    .section-alt { background: #f1f7f3; }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+    .section-head h2 {
+      max-width: 700px;
+      margin-bottom: 0;
+      font-size: clamp(2rem, 4vw, 3.25rem);
+      letter-spacing: -.025em;
+    }
+    .section-head p { max-width: 390px; margin-bottom: .35rem; color: var(--muted); }
+    .notice-grid {
+      display: grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 1.25rem;
+    }
+    .notice-feature {
+      position: relative;
+      padding: clamp(1.8rem, 4vw, 3rem);
+      overflow: hidden;
+      border-radius: 24px;
+      color: #fff;
+      background: var(--brand-dark);
+    }
+    .notice-feature::after {
+      position: absolute;
+      right: -65px;
+      bottom: -95px;
+      width: 240px;
+      height: 240px;
+      border: 40px solid rgba(255,255,255,.06);
+      border-radius: 50%;
+      content: "";
+    }
+    .notice-feature h3 { margin: 1.6rem 0 1rem; font-size: clamp(1.75rem, 3vw, 2.5rem); }
+    .notice-feature p { color: rgba(255,255,255,.75); }
+    .notice-date {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      color: var(--brand);
+      font-size: .76rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .notice-feature .notice-date { color: #b9e1d5; }
+    .notice-list { display: grid; gap: .75rem; }
+    .notice-card {
+      display: grid;
+      grid-template-columns: 68px 1fr;
+      gap: 1rem;
+      align-items: center;
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+    .notice-calendar {
+      display: grid;
+      min-height: 66px;
+      place-items: center;
+      align-content: center;
+      border-radius: 14px;
+      color: var(--brand);
+      background: var(--brand-soft);
+      line-height: 1.1;
+    }
+    .notice-calendar strong { font-family: "Fraunces", Georgia, serif; font-size: 1.5rem; }
+    .notice-calendar span { font-size: .68rem; font-weight: 700; text-transform: uppercase; }
+    .notice-card h3 { margin-bottom: .25rem; font-family: "DM Sans", sans-serif; font-size: .98rem; line-height: 1.4; }
+    .notice-card p {
+      display: -webkit-box;
+      margin: 0;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: .82rem;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+    .badge {
+      display: inline-flex;
+      padding: .25rem .55rem;
+      border-radius: 999px;
+      color: #76540d;
+      background: #fbf0d5;
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .empty-card {
+      display: grid;
+      min-height: 245px;
+      place-items: center;
+      padding: 2rem;
+      border: 1px dashed #c9d9d2;
+      border-radius: 24px;
+      color: var(--muted);
+      text-align: center;
+      background: #fff;
+    }
+    .empty-card i { display: block; margin-bottom: .6rem; color: var(--brand); font-size: 2rem; }
+    .about-grid {
+      display: grid;
+      grid-template-columns: .92fr 1.08fr;
+      gap: clamp(2rem, 7vw, 6rem);
+      align-items: center;
+    }
+    .about-visual {
+      position: relative;
+      min-height: 470px;
+      border-radius: 30px 30px 90px 30px;
+      background:
+        radial-gradient(circle at 70% 28%, rgba(255,255,255,.16) 0 15%, transparent 16%),
+        linear-gradient(145deg, #e3f2ec, #beddd0);
+      box-shadow: var(--shadow);
+    }
+    .about-visual::before,
+    .about-visual::after {
+      position: absolute;
+      border-radius: 50%;
+      content: "";
+    }
+    .about-visual::before {
+      top: 30%;
+      left: 50%;
+      width: 150px;
+      height: 150px;
+      border: 30px solid rgba(255,255,255,.5);
+      transform: translateX(-50%);
+    }
+    .about-visual::after {
+      right: 15%;
+      bottom: 13%;
+      width: 28px;
+      height: 28px;
+      background: var(--gold);
+      box-shadow: -60px -290px 0 rgba(13,107,87,.24), -255px -80px 0 rgba(13,107,87,.15);
+    }
+    .about-symbol {
+      position: absolute;
+      z-index: 2;
+      top: 50%;
+      left: 50%;
+      display: grid;
+      width: 118px;
+      height: 118px;
+      place-items: center;
+      border-radius: 35px;
+      color: var(--brand);
+      background: #fff;
+      box-shadow: 0 20px 55px rgba(19,63,51,.18);
+      font-size: 3.2rem;
+      transform: translate(-50%, -50%) rotate(-5deg);
+    }
+    .about-badge {
+      position: absolute;
+      z-index: 3;
+      right: 1.6rem;
+      bottom: 1.6rem;
+      max-width: 205px;
+      padding: 1.2rem 1.3rem;
+      border-radius: 20px;
+      color: #fff;
+      background: var(--brand);
+      box-shadow: 0 15px 30px rgba(13,107,87,.2);
+      font-size: .83rem;
+      line-height: 1.45;
+    }
+    .about-copy h2 { margin-bottom: 1.35rem; font-size: clamp(2.1rem, 4vw, 3.5rem); letter-spacing: -.03em; }
+    .about-copy > p { color: var(--muted); font-size: 1rem; }
+    .principal-card {
+      display: flex;
+      gap: 1.2rem;
+      align-items: center;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--line);
+    }
+    .principal-photo, .principal-initials {
+      width: 72px;
+      height: 72px;
+      flex: 0 0 72px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .principal-initials {
+      display: grid;
+      place-items: center;
+      color: #fff;
+      background: var(--brand);
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.5rem;
+    }
+    .principal-card h3 { margin: 0 0 .1rem; font-family: "DM Sans", sans-serif; font-size: 1rem; }
+    .principal-card p { margin: 0; color: var(--muted); font-size: .8rem; }
+    .principal-quote { margin-top: .75rem !important; color: var(--ink) !important; font-style: italic; }
+    .teacher-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.15rem;
+    }
+    .teacher-card {
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: #fff;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .teacher-card:hover { transform: translateY(-5px); box-shadow: var(--shadow); }
+    .teacher-photo, .teacher-initials {
+      width: 100%;
+      height: 255px;
+      object-fit: cover;
+    }
+    .teacher-initials {
+      display: grid;
+      place-items: center;
+      color: rgba(255,255,255,.92);
+      background:
+        radial-gradient(circle at 70% 20%, rgba(255,255,255,.15), transparent 32%),
+        linear-gradient(145deg, var(--brand-dark), #3e967d);
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 4rem;
+    }
+    .teacher-info { padding: 1.25rem; }
+    .teacher-info h3 { margin-bottom: .2rem; font-family: "DM Sans", sans-serif; font-size: 1rem; }
+    .teacher-role { margin-bottom: .65rem; color: var(--brand); font-size: .78rem; font-weight: 700; }
+    .teacher-qualification { margin: 0; color: var(--muted); font-size: .78rem; }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-rows: 210px;
+      gap: .9rem;
+    }
+    .gallery-item {
+      position: relative;
+      margin: 0;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #dceae4;
+    }
+    .gallery-item:first-child { grid-column: span 2; grid-row: span 2; }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+    .gallery-item:hover img { transform: scale(1.04); }
+    .gallery-item figcaption {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 2.5rem 1rem .9rem;
+      color: #fff;
+      background: linear-gradient(transparent, rgba(3,31,25,.78));
+      font-size: .78rem;
+      font-weight: 600;
+    }
+    .admissions {
+      position: relative;
+      padding: clamp(2rem, 5vw, 4.5rem);
+      overflow: hidden;
+      border-radius: 32px;
+      color: #fff;
+      background:
+        radial-gradient(circle at 88% 30%, rgba(255,255,255,.13) 0 13%, transparent 34%),
+        var(--brand-dark);
+    }
+    .admissions::after {
+      position: absolute;
+      right: -80px;
+      bottom: -165px;
+      width: 370px;
+      height: 370px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 50%;
+      box-shadow: 0 0 0 55px rgba(255,255,255,.035);
+      content: "";
+    }
+    .admissions-inner {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1.4fr .6fr;
+      gap: 2rem;
+      align-items: center;
+    }
+    .admissions h2 { max-width: 700px; margin-bottom: 1rem; font-size: clamp(2rem, 4vw, 3.3rem); }
+    .admissions p { max-width: 650px; margin-bottom: 0; color: rgba(255,255,255,.72); }
+    .admissions-actions { display: flex; justify-content: flex-end; }
+    .site-footer {
+      padding: 70px 0 25px;
+      color: rgba(255,255,255,.68);
+      background: #0a201b;
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.4fr .65fr 1fr;
+      gap: clamp(2rem, 7vw, 6rem);
+    }
+    .footer-brand .brand-name { color: #fff; }
+    .footer-brand .brand-sub { color: rgba(255,255,255,.45); }
+    .footer-brand p { max-width: 370px; margin: 1.2rem 0 0; font-size: .88rem; }
+    .footer-title {
+      margin: 0 0 1rem;
+      color: #fff;
+      font-family: "DM Sans", sans-serif;
+      font-size: .76rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .footer-links { display: grid; gap: .55rem; }
+    .footer-links a, .footer-contact a { text-decoration: none; }
+    .footer-links a:hover, .footer-contact a:hover { color: #fff; }
+    .footer-contact { display: grid; gap: .7rem; font-size: .86rem; }
+    .footer-contact span { display: flex; align-items: flex-start; gap: .65rem; }
+    .footer-contact i { margin-top: .2rem; color: #8fc6b5; }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 3.5rem;
+      padding-top: 1.3rem;
+      border-top: 1px solid rgba(255,255,255,.1);
+      font-size: .74rem;
+    }
+    .footer-bottom a { color: #9fcbbb; text-decoration: none; }
+    @media (max-width: 980px) {
+      .main-nav {
+        position: absolute;
+        top: 78px;
+        right: 20px;
+        left: 20px;
+        display: none;
+        align-items: stretch;
+        padding: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: var(--shadow);
+      }
+      .main-nav.open { display: grid; }
+      .main-nav .btn { width: 100%; }
+      .nav-toggle { display: block; }
+      .teacher-grid { grid-template-columns: repeat(2, 1fr); }
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+      .about-grid { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+      .about-visual { min-height: 410px; }
+    }
+    @media (max-width: 740px) {
+      .wrap { width: min(100% - 28px, 1160px); }
+      .utility-links span:nth-child(2) { display: none; }
+      .utility-links { gap: .7rem; }
+      .hero { min-height: 560px; }
+      .hero-inner { padding-block: 75px; }
+      .hero h1 { font-size: clamp(2.6rem, 13vw, 4rem); }
+      .hero-note { gap: .8rem; }
+      .section { padding-block: 70px; }
+      .section-head { display: block; }
+      .section-head p { margin-top: 1rem; }
+      .notice-grid, .about-grid, .admissions-inner, .footer-grid { grid-template-columns: 1fr; }
+      .notice-feature { min-height: 320px; }
+      .about-visual { min-height: 380px; }
+      .teacher-photo, .teacher-initials { height: 290px; }
+      .gallery-grid { grid-auto-rows: 175px; }
+      .admissions-actions { justify-content: flex-start; }
+      .footer-bottom { display: block; }
+      .footer-bottom span { display: block; margin-top: .4rem; }
+    }
+    @media (max-width: 470px) {
+      .utility-inner { justify-content: center; }
+      .utility-links span:first-child { display: none; }
+      .brand-sub { display: none; }
+      .hero-actions .btn { width: 100%; }
+      .notice-card { grid-template-columns: 55px 1fr; }
+      .teacher-grid { grid-template-columns: 1fr; }
+      .teacher-photo, .teacher-initials { height: 340px; }
+      .gallery-grid { display: flex; flex-direction: column; }
+      .gallery-item { min-height: 230px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="utility-bar">
+    <div class="wrap utility-inner">
+      <div class="utility-links">
+        {% if school.phone %}<span><i class="bi bi-telephone"></i><a href="tel:{{ school.phone }}">{{ school.phone }}</a></span>{% endif %}
+        {% if school.email %}<span><i class="bi bi-envelope"></i><a href="mailto:{{ school.email }}">{{ school.email }}</a></span>{% endif %}
+        {% if not school.phone and not school.email %}<span><i class="bi bi-geo-alt"></i>{% if school.address %}{{ school.address }}{% else %}Welcome to our school{% endif %}</span>{% endif %}
+      </div>
+      <div class="utility-links">
+        <span><i class="bi bi-clock"></i>School office: Sun–Thu</span>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="wrap nav-inner">
+      <a class="brand" href="/">
+        {% if site.logo %}
+        <img class="brand-logo" src="{{ site.logo.url }}" alt="{{ school.name }} logo">
+        {% else %}
+        <span class="brand-mark">{{ school.name|slice:":1" }}</span>
+        {% endif %}
+        <span class="brand-copy">
+          <span class="brand-name">{{ school.name }}</span>
+          <span class="brand-sub">Learn · Grow · Belong</span>
+        </span>
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false" aria-controls="main-nav">
+        <i class="bi bi-list"></i>
+      </button>
+      <nav class="main-nav" id="main-nav" aria-label="Main navigation">
+        <a href="#about">About</a>
+        <a href="#notices">Notices</a>
+        <a href="#teachers">Teachers</a>
+        <a href="#gallery">Gallery</a>
+        {% if request.user.is_authenticated and request.user.school_id == school.id %}
+        <a class="btn btn-primary" href="{% url 'dashboard:home' %}">School Dashboard <i class="bi bi-arrow-right"></i></a>
+        {% else %}
+        <a class="btn btn-primary" href="{% url 'accounts:login' %}">Portal Login <i class="bi bi-arrow-right"></i></a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  {% block content %}{% endblock %}
+
+  <footer class="site-footer" id="contact">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="/">
+            {% if site.logo %}
+            <img class="brand-logo" src="{{ site.logo.url }}" alt="{{ school.name }} logo">
+            {% else %}
+            <span class="brand-mark">{{ school.name|slice:":1" }}</span>
+            {% endif %}
+            <span class="brand-copy">
+              <span class="brand-name">{{ school.name }}</span>
+              <span class="brand-sub">Learn · Grow · Belong</span>
+            </span>
+          </a>
+          <p>{{ site.footer_note|default:"Learning with purpose, growing with confidence." }}</p>
+        </div>
+        <div>
+          <h2 class="footer-title">Explore</h2>
+          <div class="footer-links">
+            <a href="#about">About our school</a>
+            <a href="#notices">Notice board</a>
+            <a href="#teachers">Our teachers</a>
+            <a href="#gallery">Photo gallery</a>
+          </div>
+        </div>
+        <div>
+          <h2 class="footer-title">Contact</h2>
+          <div class="footer-contact">
+            {% if school.address %}<span><i class="bi bi-geo-alt"></i>{{ school.address }}</span>{% endif %}
+            {% if school.phone %}<span><i class="bi bi-telephone"></i><a href="tel:{{ school.phone }}">{{ school.phone }}</a></span>{% endif %}
+            {% if school.email %}<span><i class="bi bi-envelope"></i><a href="mailto:{{ school.email }}">{{ school.email }}</a></span>{% endif %}
+            {% if school.eiin %}<span><i class="bi bi-building-check"></i>EIIN: {{ school.eiin }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>© {% now "Y" %} {{ school.name }}. All rights reserved.</div>
+        <span>
+          {% if request.user.is_authenticated and request.user.school_id == school.id %}
+          <a href="{% url 'dashboard:home' %}">School dashboard</a>
+          {% else %}
+          <a href="{% url 'accounts:login' %}">School portal</a>
+          {% endif %}
+          · <a href="#top">Back to top</a>
+        </span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var toggle = document.querySelector('.nav-toggle');
+      var nav = document.getElementById('main-nav');
+      if (!toggle || !nav) return;
+      toggle.addEventListener('click', function () {
+        var open = nav.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', String(open));
+      });
+      nav.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+          nav.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }());
+  </script>
+</body>
+</html>

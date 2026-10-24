@@ -1,0 +1,42 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Photo Gallery{% endblock %}
+
+{% block page %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <div>
+    <a class="small text-decoration-none text-muted" href="{% url 'website:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>School Website</a>
+    <h4 class="mb-1 mt-1">Photo gallery</h4>
+    <p class="text-muted mb-0">Active photos appear in the school life gallery.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'website:gallery_add' %}"><i class="bi bi-plus-lg me-1"></i>Add photo</a>
+</div>
+
+<div class="row g-3">
+  {% for image in images %}
+  <div class="col-md-6 col-xl-4">
+    <div class="card border-0 shadow-sm h-100 overflow-hidden">
+      <img src="{{ image.image.url }}" alt="{{ image.title }}" style="height:210px;width:100%;object-fit:cover;">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-2">
+          <div>
+            <div class="fw-semibold">{{ image.title|default:"Untitled photo" }}</div>
+            <div class="small text-muted">{{ image.caption|default:"No caption" }}</div>
+          </div>
+          {% if image.is_active %}<span class="badge bg-success">Visible</span>{% else %}<span class="badge bg-secondary">Hidden</span>{% endif %}
+        </div>
+        <div class="d-flex gap-1 mt-3">
+          <a class="btn btn-sm btn-outline-primary" href="{% url 'website:gallery_edit' image.pk %}">Edit</a>
+          <form method="post" action="{% url 'website:gallery_delete' image.pk %}" onsubmit="return confirm('Delete this gallery photo?');">
+            {% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm"><div class="card-body py-5 text-center text-muted">No gallery photos yet. Add the first school photo.</div></div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

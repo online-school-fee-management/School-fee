@@ -1,0 +1,52 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Teacher Profiles{% endblock %}
+
+{% block page %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <div>
+    <a class="small text-decoration-none text-muted" href="{% url 'website:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>School Website</a>
+    <h4 class="mb-1 mt-1">Teacher profiles</h4>
+    <p class="text-muted mb-0">Introduce the teachers and educators featured on the public website.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'website:teacher_add' %}"><i class="bi bi-plus-lg me-1"></i>Add teacher</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr><th>Teacher</th><th>Designation</th><th>Qualification</th><th>Status</th><th class="text-end">Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for teacher in teachers %}
+        <tr>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              {% if teacher.photo %}
+              <img src="{{ teacher.photo.url }}" alt="" class="rounded-circle" style="width:42px;height:42px;object-fit:cover;">
+              {% else %}
+              <span class="rounded-circle bg-primary-subtle text-primary d-grid fw-semibold" style="width:42px;height:42px;place-items:center;">{{ teacher.name|slice:":1" }}</span>
+              {% endif %}
+              <span class="fw-semibold">{{ teacher.name }}</span>
+            </div>
+          </td>
+          <td>{{ teacher.designation }}</td>
+          <td class="small text-muted">{{ teacher.qualification|default:"—" }}</td>
+          <td>{% if teacher.is_active %}<span class="badge bg-success">Visible</span>{% else %}<span class="badge bg-secondary">Hidden</span>{% endif %}</td>
+          <td class="text-end">
+            <div class="d-inline-flex gap-1">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'website:teacher_edit' teacher.pk %}">Edit</a>
+              <form method="post" action="{% url 'website:teacher_delete' teacher.pk %}" onsubmit="return confirm('Delete this teacher profile?');">
+                {% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="text-center text-muted py-5">No teacher profiles yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

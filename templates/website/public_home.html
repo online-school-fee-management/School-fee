@@ -1,0 +1,192 @@
+{% extends "base_public.html" %}
+
+{% block title %}{{ school.name }} | {{ site.hero_title }}{% endblock %}
+{% block meta_description %}{{ site.hero_subtitle|truncatechars:155 }}{% endblock %}
+
+{% block content %}
+<style>:root { --brand: {{ site.primary_color }}; --brand-dark: color-mix(in srgb, {{ site.primary_color }} 75%, #062d25); }</style>
+
+<main id="top">
+  <section class="hero{% if site.hero_image %} has-image{% endif %}"
+    {% if site.hero_image %}style="--hero-image: url('{{ site.hero_image.url }}')"{% endif %}>
+    <div class="wrap hero-inner">
+      <div class="hero-content">
+        <p class="eyebrow">{{ site.hero_eyebrow }}</p>
+        <h1>{{ site.hero_title }}</h1>
+        <p class="hero-copy">{{ site.hero_subtitle|linebreaksbr }}</p>
+        <div class="hero-actions">
+          <a class="btn btn-light" href="#about">Discover our school <i class="bi bi-arrow-down-right"></i></a>
+          {% if site.admissions_open %}
+          <a class="btn btn-primary" href="#admissions">Admission information</a>
+          {% endif %}
+        </div>
+        <div class="hero-note">
+          <span><i class="bi bi-check2-circle"></i> Caring, qualified teachers</span>
+          <span><i class="bi bi-check2-circle"></i> A safe learning community</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="notices">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Stay informed</p>
+          <h2>From the notice board</h2>
+        </div>
+        <p>Important dates, school updates and announcements for students and families.</p>
+      </div>
+
+      {% if notices %}
+      <div class="notice-grid">
+        {% with first=notices.0 %}
+        <article class="notice-feature">
+          <span class="notice-date"><i class="bi bi-calendar-event"></i>{{ first.published_on|date:"d F Y" }}</span>
+          {% if first.is_important %}<span class="badge">Important</span>{% endif %}
+          <h3>{{ first.title }}</h3>
+          <p>{{ first.content|linebreaksbr }}</p>
+        </article>
+        {% endwith %}
+        <div class="notice-list">
+          {% for notice in notices|slice:"1:" %}
+          <article class="notice-card">
+            <div class="notice-calendar">
+              <strong>{{ notice.published_on|date:"d" }}</strong>
+              <span>{{ notice.published_on|date:"M" }}</span>
+            </div>
+            <div>
+              <span class="notice-date">{{ notice.published_on|date:"d M Y" }}{% if notice.is_important %} · Important{% endif %}</span>
+              <h3>{{ notice.title }}</h3>
+              <p>{{ notice.content }}</p>
+            </div>
+          </article>
+          {% empty %}
+          <div class="empty-card">
+            <div><i class="bi bi-pin-angle"></i>More school notices will appear here.</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="empty-card">
+        <div><i class="bi bi-pin-angle"></i>There are no public notices at the moment.</div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="section section-alt" id="about">
+    <div class="wrap about-grid">
+      <div class="about-visual" aria-hidden="true">
+        <span class="about-symbol"><i class="bi bi-mortarboard"></i></span>
+        <span class="about-badge">A school built around<br><strong>every student's potential.</strong></span>
+      </div>
+      <div class="about-copy">
+        <p class="eyebrow">About our school</p>
+        <h2>{{ site.about_title }}</h2>
+        <p>{{ site.about_text|linebreaksbr }}</p>
+        {% if site.principal_name or site.principal_message or site.principal_photo %}
+        <div class="principal-card">
+          {% if site.principal_photo %}
+          <img class="principal-photo" src="{{ site.principal_photo.url }}" alt="{{ site.principal_name }}">
+          {% else %}
+          <span class="principal-initials">{{ site.principal_name|default:"P"|slice:":1" }}</span>
+          {% endif %}
+          <div>
+            {% if site.principal_name %}<h3>{{ site.principal_name }}</h3>{% endif %}
+            <p>{{ site.principal_title|default:"Principal" }}</p>
+            {% if site.principal_message %}<p class="principal-quote">“{{ site.principal_message }}”</p>{% endif %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="teachers">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Meet our educators</p>
+          <h2>People who make learning personal</h2>
+        </div>
+        <p>Experienced teachers who know their students, celebrate progress and make every class meaningful.</p>
+      </div>
+      {% if teachers %}
+      <div class="teacher-grid">
+        {% for teacher in teachers %}
+        <article class="teacher-card">
+          {% if teacher.photo %}
+          <img class="teacher-photo" src="{{ teacher.photo.url }}" alt="{{ teacher.name }}">
+          {% else %}
+          <div class="teacher-initials" aria-hidden="true">{{ teacher.name|slice:":1" }}</div>
+          {% endif %}
+          <div class="teacher-info">
+            <h3>{{ teacher.name }}</h3>
+            <p class="teacher-role">{{ teacher.designation }}</p>
+            {% if teacher.qualification %}<p class="teacher-qualification"><i class="bi bi-award"></i> {{ teacher.qualification }}</p>{% endif %}
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-card">
+        <div><i class="bi bi-person-video3"></i>Teacher profiles will be shown here.</div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="section section-alt" id="gallery">
+    <div class="wrap">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">School life</p>
+          <h2>Moments from our community</h2>
+        </div>
+        <p>A glimpse of learning, creativity, friendships and the everyday life of our school.</p>
+      </div>
+      {% if gallery %}
+      <div class="gallery-grid">
+        {% for image in gallery %}
+        <figure class="gallery-item">
+          <img src="{{ image.image.url }}" alt="{{ image.title|default:'School gallery photo' }}" loading="lazy">
+          {% if image.title or image.caption %}<figcaption>{{ image.title|default:image.caption }}</figcaption>{% endif %}
+        </figure>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-card">
+        <div><i class="bi bi-images"></i>School photos will appear here.</div>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  {% if site.admissions_open %}
+  <section class="section" id="admissions">
+    <div class="wrap">
+      <div class="admissions">
+        <div class="admissions-inner">
+          <div>
+            <p class="eyebrow" style="color:#b9e1d5;">Join our community</p>
+            <h2>{{ site.admissions_title }}</h2>
+            <p>{{ site.admissions_text|linebreaksbr }}</p>
+          </div>
+          <div class="admissions-actions">
+            {% if school.phone %}
+            <a class="btn btn-light" href="tel:{{ school.phone }}"><i class="bi bi-telephone"></i> Contact the school</a>
+            {% elif school.email %}
+            <a class="btn btn-light" href="mailto:{{ school.email }}"><i class="bi bi-envelope"></i> Email us</a>
+            {% else %}
+            <a class="btn btn-light" href="#contact">Contact us <i class="bi bi-arrow-right"></i></a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

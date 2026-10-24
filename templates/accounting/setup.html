@@ -1,0 +1,45 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Cash Book Setup{% endblock %}
+
+{% block page %}
+<div class="mb-4">
+  <a class="small text-decoration-none text-muted" href="{% url 'accounting:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>Simple Accounts</a>
+  <h4 class="mb-1 mt-1">Opening balances</h4>
+  <p class="text-muted mb-0">Enter what the school already has before daily bookkeeping begins.</p>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        {{ form.non_field_errors }}
+        <form method="post">
+          {% csrf_token %}
+          <h6 class="mb-3">Starting balances</h6>
+          <div class="row">
+            <div class="col-md-6">{% include "accounting/_field.html" with field=form.opening_cash %}</div>
+            <div class="col-md-6">{% include "accounting/_field.html" with field=form.opening_bank %}</div>
+            <div class="col-12">{% include "accounting/_field.html" with field=form.opening_date %}</div>
+          </div>
+          <hr class="my-4">
+          <h6 class="mb-3">Bank details <span class="text-muted fw-normal small">(optional)</span></h6>
+          {% include "accounting/_field.html" with field=form.bank_name %}
+          {% include "accounting/_field.html" with field=form.bank_account_number %}
+          <button class="btn btn-primary" type="submit">Save setup</button>
+          <a class="btn btn-light" href="{% url 'accounting:dashboard' %}">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-xl-5">
+    <div class="card border-0 shadow-sm bg-body-tertiary">
+      <div class="card-body p-4">
+        <h6><i class="bi bi-question-circle me-1 text-success"></i>What is an opening balance?</h6>
+        <p class="small text-muted mt-3">It is the amount already available in each place when you start using this cash book.</p>
+        <p class="small text-muted">For example, if there is ৳10,000 in the office and ৳50,000 in the bank today, enter those amounts and choose today as the start date.</p>
+        <p class="small text-muted mb-0">Opening balances are not treated as income. They only give the ledgers a correct starting point.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

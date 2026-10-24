@@ -1,0 +1,90 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Website Settings{% endblock %}
+
+{% block page %}
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+  <div>
+    <a class="small text-decoration-none text-muted" href="{% url 'website:dashboard' %}"><i class="bi bi-arrow-left me-1"></i>School Website</a>
+    <h4 class="mb-1 mt-1">Website content</h4>
+    <p class="text-muted mb-0">Update the public page at any time. Changes are visible immediately.</p>
+  </div>
+  <a class="btn btn-outline-success" href="/" target="_blank" rel="noopener"><i class="bi bi-eye me-1"></i>Preview website</a>
+</div>
+
+<div class="row g-4">
+  <div class="col-xl-8">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="form_kind" value="website">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h5 class="mb-1">Brand and welcome area</h5>
+          <p class="small text-muted mb-4">This content appears in the header and the first section of the page.</p>
+          {{ site_form.non_field_errors }}
+          <div class="row">
+            <div class="col-md-6">{% include "website/_field.html" with field=site_form.logo %}</div>
+            <div class="col-md-6">{% include "website/_field.html" with field=site_form.primary_color %}</div>
+            <div class="col-12">{% include "website/_field.html" with field=site_form.hero_image %}</div>
+            <div class="col-12">{% include "website/_field.html" with field=site_form.hero_eyebrow %}</div>
+            <div class="col-12">{% include "website/_field.html" with field=site_form.hero_title %}</div>
+            <div class="col-12">{% include "website/_field.html" with field=site_form.hero_subtitle %}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h5 class="mb-1">About and principal</h5>
+          <p class="small text-muted mb-4">Tell families what makes the school a good place to learn.</p>
+          {% include "website/_field.html" with field=site_form.about_title %}
+          {% include "website/_field.html" with field=site_form.about_text %}
+          <div class="row">
+            <div class="col-md-6">{% include "website/_field.html" with field=site_form.principal_name %}</div>
+            <div class="col-md-6">{% include "website/_field.html" with field=site_form.principal_title %}</div>
+            <div class="col-12">{% include "website/_field.html" with field=site_form.principal_message %}</div>
+            <div class="col-12">{% include "website/_field.html" with field=site_form.principal_photo %}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h5 class="mb-1">Admissions and footer</h5>
+          <p class="small text-muted mb-4">Use this to invite families to contact the school.</p>
+          {% include "website/_field.html" with field=site_form.admissions_open %}
+          {% include "website/_field.html" with field=site_form.admissions_title %}
+          {% include "website/_field.html" with field=site_form.admissions_text %}
+          {% include "website/_field.html" with field=site_form.footer_note %}
+        </div>
+      </div>
+
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check2 me-1"></i>Save website content</button>
+    </form>
+  </div>
+
+  <div class="col-xl-4">
+    <form method="post" class="card border-0 shadow-sm mb-4">
+      {% csrf_token %}
+      <input type="hidden" name="form_kind" value="school">
+      <div class="card-body p-4">
+        <h5 class="mb-1">School details</h5>
+        <p class="small text-muted mb-4">Shown in the header, admission section and footer.</p>
+        {{ school_form.non_field_errors }}
+        {% for field in school_form %}{% include "website/_field.html" with field=field %}{% endfor %}
+        <button class="btn btn-outline-primary" type="submit">Save school details</button>
+      </div>
+    </form>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <h6>Manage other sections</h6>
+        <div class="d-grid gap-2 mt-3">
+          <a class="btn btn-light text-start" href="{% url 'website:notices' %}"><i class="bi bi-pin-angle me-2 text-primary"></i>Notice board</a>
+          <a class="btn btn-light text-start" href="{% url 'website:gallery' %}"><i class="bi bi-images me-2 text-info"></i>Photo gallery</a>
+          <a class="btn btn-light text-start" href="{% url 'website:teachers' %}"><i class="bi bi-person-video3 me-2 text-warning"></i>Teacher profiles</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

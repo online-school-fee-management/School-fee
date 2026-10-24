@@ -12,6 +12,7 @@ from django.views.decorators.http import require_POST
 
 from accounts.decorators import role_required
 from academics.models import AcademicYear, SchoolClass, Student
+from accounting.models import CashTransaction
 from fees.models import FeeStructure, StudentFee
 
 from .models import Payment
@@ -223,6 +224,7 @@ def collect(request, pk):
         form = request.POST
         amount = parse_money(request.POST.get("amount"))
         method = request.POST.get("method", "")
+        account_type = request.POST.get("account_type", "")
         reference = request.POST.get("reference", "").strip()
         note = request.POST.get("note", "").strip()
 
@@ -233,6 +235,7 @@ def collect(request, pk):
                 payment = record_payment(
                     school=school, fee_id=fee.pk, amount=amount, method=method,
                     reference=reference[:100], note=note[:200], user=request.user,
+                    account_type=account_type,
                 )
             except PaymentError as exc:
                 errors.append(str(exc))
@@ -242,11 +245,16 @@ def collect(request, pk):
                 )
                 return redirect("payments:receipt", pk=payment.pk)
     else:
-        form = {"amount": fee.due_amount, "method": Payment.METHOD_CASH}
+        form = {
+            "amount": fee.due_amount,
+            "method": Payment.METHOD_CASH,
+            "account_type": CashTransaction.ACCOUNT_CASH,
+        }
 
     return render(request, "payments/collect.html", {
         "fee": fee, "form": form, "errors": errors,
         "methods": Payment.METHOD_CHOICES,
+        "account_choices": CashTransaction.ACCOUNT_CHOICES,
     })
 
 

@@ -1,0 +1,144 @@
+{% extends "base_dashboard.html" %}
+{% block title %}Simple Accounts{% endblock %}
+
+{% block page %}
+<div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h4 class="mb-1">Simple Accounts</h4>
+    <p class="text-muted mb-0">{{ request.school.name }} · Cash-basis cash book</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-success" href="{% url 'accounting:entry_create' %}?type=receipt"><i class="bi bi-arrow-down-left me-1"></i>Money received</a>
+    <a class="btn btn-outline-danger" href="{% url 'accounting:entry_create' %}?type=payment"><i class="bi bi-arrow-up-right me-1"></i>Money paid</a>
+  </div>
+</div>
+
+<div class="alert alert-light border d-flex gap-3 align-items-start mb-4">
+  <i class="bi bi-lightbulb fs-5 text-success"></i>
+  <div class="small">
+    <strong>Cash basis is simple:</strong> record money when it actually comes in or goes out.
+    Unpaid bills and expected income are not entered until cash moves.
+    Student fee collections are added here automatically.
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="text-muted small">Cash at Hand</div>
+          <span class="rounded-circle bg-success-subtle text-success d-grid" style="width:38px;height:38px;place-items:center;"><i class="bi bi-wallet2"></i></span>
+        </div>
+        <div class="fs-3 fw-semibold mt-2">৳{{ cash_balance|floatformat:2 }}</div>
+        <a class="small text-decoration-none" href="{% url 'accounting:ledger' %}?account=cash">View cash ledger <i class="bi bi-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="text-muted small">{{ settings_obj.bank_label }}</div>
+          <span class="rounded-circle bg-primary-subtle text-primary d-grid" style="width:38px;height:38px;place-items:center;"><i class="bi bi-bank"></i></span>
+        </div>
+        <div class="fs-3 fw-semibold mt-2">৳{{ bank_balance|floatformat:2 }}</div>
+        <a class="small text-decoration-none" href="{% url 'accounting:ledger' %}?account=bank">View bank ledger <i class="bi bi-arrow-right"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm h-100 bg-dark text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start">
+          <div class="small text-white-50">Total money available</div>
+          <i class="bi bi-calculator fs-5"></i>
+        </div>
+        <div class="fs-3 fw-semibold mt-2">৳{{ total_balance|floatformat:2 }}</div>
+        <div class="small text-white-50">Cash + bank balances</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h5 class="mb-1">This month</h5>
+            <div class="small text-muted">Since {{ month_start|date:"d M Y" }}</div>
+          </div>
+          <i class="bi bi-calendar3 text-muted"></i>
+        </div>
+        <div class="row g-3 mt-2">
+          <div class="col-6">
+            <div class="rounded-3 bg-success-subtle p-3">
+              <div class="small text-success-emphasis">Money in</div>
+              <div class="fw-semibold fs-5">৳{{ month_receipts|floatformat:2 }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="rounded-3 bg-danger-subtle p-3">
+              <div class="small text-danger-emphasis">Money out</div>
+              <div class="fw-semibold fs-5">৳{{ month_payments|floatformat:2 }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex justify-content-between border-top mt-3 pt-3">
+          <span class="text-muted small">Net movement</span>
+          <strong class="{% if month_net < 0 %}text-danger{% else %}text-success{% endif %}">৳{{ month_net|floatformat:2 }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body p-4">
+        <h5 class="mb-3">Quick actions</h5>
+        <div class="row g-2">
+          <div class="col-sm-6"><a class="btn btn-light border text-start w-100 py-3" href="{% url 'accounting:entries' %}"><i class="bi bi-list-ul me-2 text-primary"></i>All transactions</a></div>
+          <div class="col-sm-6"><a class="btn btn-light border text-start w-100 py-3" href="{% url 'accounting:ledger' %}"><i class="bi bi-journal-text me-2 text-success"></i>Cash book ledger</a></div>
+          <div class="col-sm-6"><a class="btn btn-light border text-start w-100 py-3" href="{% url 'accounting:import' %}"><i class="bi bi-file-earmark-excel me-2 text-success"></i>Import Excel</a></div>
+          <div class="col-sm-6"><a class="btn btn-light border text-start w-100 py-3" href="{% url 'accounting:setup' %}"><i class="bi bi-sliders me-2 text-secondary"></i>Opening balances</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="d-flex justify-content-between align-items-center p-4 pb-3">
+      <div>
+        <h5 class="mb-1">Recent transactions</h5>
+        <div class="text-muted small">The latest money movement recorded in your cash book.</div>
+      </div>
+      <a class="btn btn-sm btn-outline-primary" href="{% url 'accounting:entries' %}">View all</a>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light"><tr><th>Date</th><th>Voucher</th><th>Details</th><th>Account</th><th class="text-end">Money in</th><th class="text-end">Money out</th></tr></thead>
+        <tbody>
+          {% for entry in recent_entries %}
+          <tr>
+            <td class="small text-nowrap">{{ entry.entry_date|date:"d M Y" }}</td>
+            <td><a class="fw-semibold text-decoration-none" href="{% url 'accounting:entry_detail' entry.pk %}">{{ entry.voucher_no }}</a></td>
+            <td>
+              <div class="fw-semibold">{{ entry.party }}</div>
+              <div class="small text-muted">{{ entry.get_category_display }}{% if entry.description %} · {{ entry.description|truncatechars:45 }}{% endif %}</div>
+            </td>
+            <td><span class="badge {% if entry.account_type == 'cash' %}bg-success-subtle text-success-emphasis{% else %}bg-primary-subtle text-primary-emphasis{% endif %}">{{ entry.account_label }}</span></td>
+            <td class="text-end text-success fw-semibold">{% if entry.transaction_type == 'receipt' %}৳{{ entry.amount|floatformat:2 }}{% else %}—{% endif %}</td>
+            <td class="text-end text-danger fw-semibold">{% if entry.transaction_type == 'payment' %}৳{{ entry.amount|floatformat:2 }}{% else %}—{% endif %}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-5">No transactions yet. Record your first receipt or payment above.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
