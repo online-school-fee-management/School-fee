@@ -40,6 +40,12 @@ class AccountingTests(TestCase):
             school=self.school,
             role="teacher",
         )
+        self.auditor = User.objects.create_user(
+            username="auditor",
+            password="test-password",
+            school=self.school,
+            role="auditor",
+        )
         self.host = "ledger-school.localhost"
         self.ledger_settings = get_settings(self.school)
         self.ledger_settings.opening_cash = 2000
@@ -107,6 +113,113 @@ class AccountingTests(TestCase):
             "/dashboard/accounting/", HTTP_HOST=self.host
         )
         self.assertEqual(response.status_code, 403)
+
+    def test_teacher_can_manage_fees_and_collect_payment(self):
+        year = AcademicYear.objects.create(
+            school=self.school,
+            name="2026",
+            is_current=True,
+        )
+        school_class = SchoolClass.objects.create(
+            school=self.school,
+            name="Class 7",
+            section="A",
+        )
+        student = Student.objects.create(
+            school=self.school,
+            student_id="7001",
+            name="Teacher Test Student",
+            school_class=school_class,
+            academic_year=year,
+        )
+        structure = FeeStructure.objects.create(
+            school=self.school,
+            fee_type="annual",
+            title="Annual Fee",
+            academic_year=year,
+            school_class=school_class,
+            amount=500,
+        )
+        fee = StudentFee.objects.create(
+            school=self.school,
+            student=student,
+            structure=structure,
+            amount=500,
+        )
+        self.client.force_login(self.teacher)
+
+        self.assertEqual(
+            self.client.get(
+                "/dashboard/fees/", HTTP_HOST=self.host
+            ).status_code,
+            200,
+        )
+        self.assertEqual(
+            self.client.get(
+                "/dashboard/payments/", HTTP_HOST=self.host
+            ).status_code,
+            200,
+        )
+
+        response = self.client.post(
+            f"/dashboard/payments/due/{fee.pk}/collect/",
+            {
+                "amount": "200.00",
+                "method": "cash",
+                "account_type": "cash",
+                "reference": "",
+                "note": "Collected by class teacher",
+            },
+            HTTP_HOST=self.host,
+        )
+        self.assertEqual(response.status_code, 302)
+        fee.refresh_from_db()
+        self.assertEqual(fee.paid_amount, 200)
+
+    def test_auditor_can_view_export_and_download_but_not_change_accounts(self):
+        self.client.force_login(self.admin)
+        response = self._post_entry()
+        self.assertEqual(response.status_code, 302)
+        entry = CashTransaction.objects.get()
+
+        self.client.force_login(self.auditor)
+        for path in (
+            "/dashboard/accounting/",
+            "/dashboard/accounting/entries/",
+            f"/dashboard/accounting/entries/{entry.pk}/",
+            "/dashboard/accounting/ledger/",
+            "/dashboard/accounting/export/?format=csv",
+            "/dashboard/payments/",
+        ):
+            with self.subTest(path=path):
+                response = self.client.get(path, HTTP_HOST=self.host)
+                self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(
+            f"/dashboard/accounting/entries/{entry.pk}/download/",
+            HTTP_HOST=self.host,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(response.content.startswith(b"%PDF"))
+
+        for path in (
+            "/dashboard/accounting/setup/",
+            "/dashboard/accounting/entries/new/",
+            "/dashboard/accounting/import/",
+        ):
+            with self.subTest(path=path):
+                response = self.client.get(path, HTTP_HOST=self.host)
+                self.assertEqual(response.status_code, 403)
+
+        response = self.client.post(
+            f"/dashboard/accounting/entries/{entry.pk}/void/",
+            {"reason": "Auditor must not be able to void"},
+            HTTP_HOST=self.host,
+        )
+        self.assertEqual(response.status_code, 403)
+        entry.refresh_from_db()
+        self.assertFalse(entry.is_voided)
 
     def test_future_dated_transaction_is_rejected(self):
         self.client.force_login(self.accountant)

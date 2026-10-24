@@ -47,7 +47,7 @@
           <td>{{ d.structure.due_date|date:"d M Y"|default:"—" }}</td>
           <td class="text-end">
             <div class="d-inline-flex gap-1 align-items-start">
-              {% if d.status != 'paid' %}<a class="btn btn-sm btn-success" href="{% url 'payments:collect' d.pk %}">Collect</a>{% endif %}
+              {% if d.status != 'paid' and request.user.can_manage_fees %}<a class="btn btn-sm btn-success" href="{% url 'payments:collect' d.pk %}">Collect</a>{% endif %}
               {% if request.user.role == 'admin' %}
               <details class="text-start">
                 <summary class="btn btn-sm btn-outline-secondary">Waiver</summary>

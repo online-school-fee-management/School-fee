@@ -10,6 +10,10 @@ def role_home(user):
     """Where each role lands after login."""
     if user.role == "student":
         return "portal:home"
+    if user.role == "webmaster":
+        return "website:dashboard"
+    if user.role == "auditor":
+        return "accounting:dashboard"
     if user.role in ("admin", "accountant", "teacher"):
         return "dashboard:home"
     return "/admin/"  # platform superuser

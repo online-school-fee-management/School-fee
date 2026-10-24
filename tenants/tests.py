@@ -27,6 +27,18 @@ class SchoolWebsiteTests(TestCase):
             school=self.school,
             role="teacher",
         )
+        self.webmaster = User.objects.create_user(
+            username="webmaster",
+            password="test-password",
+            school=self.school,
+            role="webmaster",
+        )
+        self.auditor = User.objects.create_user(
+            username="auditor",
+            password="test-password",
+            school=self.school,
+            role="auditor",
+        )
         self.host = "green-valley.localhost"
 
     def test_tenant_root_shows_public_school_website(self):
@@ -74,6 +86,59 @@ class SchoolWebsiteTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 403)
+
+    def test_webmaster_can_open_and_update_website_editor(self):
+        self.client.force_login(self.webmaster)
+
+        for path in (
+            "/dashboard/website/",
+            "/dashboard/website/settings/",
+            "/dashboard/website/notices/",
+            "/dashboard/website/gallery/",
+            "/dashboard/website/teachers/",
+        ):
+            with self.subTest(path=path):
+                response = self.client.get(path, HTTP_HOST=self.host)
+                self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(
+            "/dashboard/website/notices/add/",
+            {
+                "title": "Webmaster notice",
+                "content": "Published by the school webmaster.",
+                "published_on": "2026-10-24",
+                "is_active": "on",
+            },
+            HTTP_HOST=self.host,
+        )
+        self.assertRedirects(
+            response,
+            "/dashboard/website/notices/",
+            fetch_redirect_response=False,
+        )
+        self.assertTrue(
+            Notice.objects.filter(
+                school=self.school, title="Webmaster notice"
+            ).exists()
+        )
+
+    def test_new_staff_roles_land_on_their_work_area_after_login(self):
+        for username, landing_page in (
+            ("webmaster", "/dashboard/website/"),
+            ("auditor", "/dashboard/accounting/"),
+        ):
+            with self.subTest(username=username):
+                response = self.client.post(
+                    "/login/",
+                    {"username": username, "password": "test-password"},
+                    HTTP_HOST=self.host,
+                )
+                self.assertRedirects(
+                    response,
+                    landing_page,
+                    fetch_redirect_response=False,
+                )
+                self.client.logout()
 
     def test_admin_updates_content_and_notice_appears_publicly(self):
         self.client.force_login(self.admin)

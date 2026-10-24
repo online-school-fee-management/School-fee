@@ -107,7 +107,7 @@
           </td>
           <td>{{ d.structure.due_date|date:"d M Y"|default:"—" }}</td>
           <td class="text-end">
-            {% if d.status != 'paid' %}<a class="btn btn-sm btn-success" href="{% url 'payments:collect' d.pk %}">Collect</a>{% endif %}
+            {% if d.status != 'paid' and request.user.can_manage_fees %}<a class="btn btn-sm btn-success" href="{% url 'payments:collect' d.pk %}">Collect</a>{% endif %}
           </td>
         </tr>
         {% empty %}

@@ -12,11 +12,13 @@ from tenants import plans
 
 User = get_user_model()
 
-STAFF_ROLES = ("admin", "accountant", "teacher")
+STAFF_ROLES = ("admin", "accountant", "teacher", "webmaster", "auditor")
 ROLE_CHOICES = [
     ("admin", "Admin (full access)"),
     ("accountant", "Accountant (fees, payments and accounts)"),
-    ("teacher", "Teacher (view students)"),
+    ("teacher", "Teacher (students and fee management)"),
+    ("webmaster", "Webmaster (website content management)"),
+    ("auditor", "Auditor (view and download accounts and vouchers)"),
 ]
 # no look-alike characters (0/O, 1/l/I) so a password can be read out or copied by hand
 PASSWORD_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789"

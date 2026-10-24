@@ -1,6 +1,7 @@
 import csv
 import datetime
 from decimal import Decimal, InvalidOperation
+from html import escape
 from io import BytesIO
 
 from django.contrib import messages
@@ -18,7 +19,8 @@ from .forms import AccountingSetupForm, CashTransactionForm
 from .models import CashTransaction
 from .services import account_balance, create_transaction, get_settings, ledger_for
 
-ROLES = ("admin", "accountant")
+MANAGE_ROLES = ("admin", "accountant")
+AUDIT_ROLES = ("admin", "accountant", "auditor")
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024
 
 
@@ -81,7 +83,7 @@ def _filtered_entries(request):
     }
 
 
-@role_required(*ROLES)
+@role_required(*AUDIT_ROLES)
 def dashboard(request):
     school = request.school
     settings_obj = get_settings(school)
@@ -128,7 +130,7 @@ def dashboard(request):
     })
 
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 def setup(request):
     school = request.school
     settings_obj = get_settings(school)
@@ -147,7 +149,7 @@ def setup(request):
     })
 
 
-@role_required(*ROLES)
+@role_required(*AUDIT_ROLES)
 def entry_list(request):
     qs, filters = _filtered_entries(request)
     totals = qs.aggregate(
@@ -176,7 +178,7 @@ def entry_list(request):
     })
 
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 def entry_create(request):
     transaction_type = request.GET.get("type", CashTransaction.TYPE_RECEIPT)
     if transaction_type not in (
@@ -224,7 +226,7 @@ def entry_create(request):
     })
 
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 def entry_edit(request, pk):
     entry = get_object_or_404(
         CashTransaction.objects.filter(school=request.school, is_voided=False),
@@ -251,7 +253,7 @@ def entry_edit(request, pk):
     })
 
 
-@role_required(*ROLES)
+@role_required(*AUDIT_ROLES)
 def entry_detail(request, pk):
     entry = get_object_or_404(
         CashTransaction.objects.select_related(
@@ -264,7 +266,7 @@ def entry_detail(request, pk):
     })
 
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 @require_POST
 def entry_void(request, pk):
     entry = get_object_or_404(
@@ -290,7 +292,7 @@ def entry_void(request, pk):
     return redirect("accounting:entry_detail", pk=entry.pk)
 
 
-@role_required(*ROLES)
+@role_required(*AUDIT_ROLES)
 def ledger(request):
     school = request.school
     account_type = request.GET.get("account", CashTransaction.ACCOUNT_CASH)
@@ -336,7 +338,149 @@ def _download_workbook(workbook, filename):
     return response
 
 
-@role_required(*ROLES)
+@role_required(*AUDIT_ROLES)
+def entry_download(request, pk):
+    """Download a single accounting voucher as an audit-ready PDF."""
+    from reportlab.lib import colors
+    from reportlab.lib.enums import TA_RIGHT
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import mm
+    from reportlab.platypus import (
+        Paragraph,
+        SimpleDocTemplate,
+        Spacer,
+        Table,
+        TableStyle,
+    )
+
+    entry = get_object_or_404(
+        CashTransaction.objects.select_related(
+            "created_by", "voided_by", "source_payment"
+        ).filter(school=request.school),
+        pk=pk,
+    )
+    buffer = BytesIO()
+    document = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=22 * mm,
+        leftMargin=22 * mm,
+        topMargin=20 * mm,
+        bottomMargin=20 * mm,
+        title=f"{entry.document_label} {entry.voucher_no}",
+        author=request.school.name,
+    )
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name="VoucherSchool",
+        parent=styles["Heading1"],
+        fontName="Helvetica-Bold",
+        fontSize=18,
+        leading=22,
+        textColor=colors.HexColor("#0d6b57"),
+        spaceAfter=4 * mm,
+    ))
+    styles.add(ParagraphStyle(
+        name="VoucherLabel",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#667085"),
+    ))
+    styles.add(ParagraphStyle(
+        name="VoucherValue",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=10.5,
+        leading=14,
+    ))
+    styles.add(ParagraphStyle(
+        name="VoucherAmount",
+        parent=styles["Heading2"],
+        alignment=TA_RIGHT,
+        fontSize=18,
+        leading=22,
+        textColor=colors.HexColor(
+            "#198754" if entry.transaction_type == CashTransaction.TYPE_RECEIPT
+            else "#dc3545"
+        ),
+        spaceAfter=7 * mm,
+    ))
+
+    recorded_by = (
+        entry.created_by.get_full_name() or entry.created_by.username
+        if entry.created_by else "—"
+    )
+    source = entry.get_source_display()
+    if entry.source_payment_id:
+        source = f"{source} · {entry.source_payment.receipt_no}"
+
+    rows = [
+        ("Voucher no", entry.voucher_no),
+        ("Type", entry.get_transaction_type_display()),
+        ("Date", entry.entry_date.strftime("%d %B %Y")),
+        ("Account", entry.account_label),
+        ("Category", entry.get_category_display()),
+        ("Counterparty", entry.party),
+        ("Reference", entry.reference or "—"),
+        ("Description", entry.description or "—"),
+        ("Source", source),
+        ("Recorded by", recorded_by),
+        ("Status", "Voided" if entry.is_voided else "Active"),
+    ]
+    if entry.is_voided:
+        voided_by = (
+            entry.voided_by.get_full_name() or entry.voided_by.username
+            if entry.voided_by else "—"
+        )
+        rows.extend([
+            ("Voided by", voided_by),
+            ("Void reason", entry.void_reason or "—"),
+        ])
+
+    details = [
+        [
+            Paragraph(escape(label), styles["VoucherLabel"]),
+            Paragraph(escape(str(value)), styles["VoucherValue"]),
+        ]
+        for label, value in rows
+    ]
+    details_table = Table(details, colWidths=[43 * mm, 120 * mm])
+    details_table.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("LINEBELOW", (0, 0), (-1, -2), 0.35, colors.HexColor("#e5e7eb")),
+    ]))
+
+    story = [
+        Paragraph(escape(request.school.name), styles["VoucherSchool"]),
+        Paragraph(escape(entry.document_label), styles["VoucherValue"]),
+        Spacer(1, 3 * mm),
+        Paragraph(
+            f"BDT {entry.amount:,.2f}",
+            styles["VoucherAmount"],
+        ),
+        details_table,
+        Spacer(1, 9 * mm),
+        Paragraph(
+            f"Downloaded from the school portal on "
+            f"{timezone.localtime():%d %B %Y at %I:%M %p}.",
+            styles["VoucherLabel"],
+        ),
+    ]
+    document.build(story)
+
+    response = HttpResponse(buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="{entry.voucher_no}.pdf"'
+    )
+    return response
+
+
+@role_required(*MANAGE_ROLES)
 def import_template(request):
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Font, PatternFill
@@ -565,7 +709,7 @@ def _run_import(school, upload, user):
     return {"imported": len(valid_rows)}
 
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 def import_entries(request):
     result = None
     if request.method == "POST":
@@ -590,7 +734,7 @@ def import_entries(request):
     })
 
 
-@role_required(*ROLES)
+@role_required(*AUDIT_ROLES)
 def export_entries(request):
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill

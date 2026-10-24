@@ -41,7 +41,7 @@ def public_school_site(request):
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def website_dashboard(request):
     school = request.school
     website = _website_for(school)
@@ -54,7 +54,7 @@ def website_dashboard(request):
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def website_settings(request):
     school = request.school
     website = _website_for(school)
@@ -87,14 +87,14 @@ def website_settings(request):
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def notice_list(request):
     return render(request, "website/notices.html", {
         "notices": Notice.objects.filter(school=request.school),
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def notice_add(request):
     form = NoticeForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -109,7 +109,7 @@ def notice_add(request):
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def notice_edit(request, pk):
     notice = get_object_or_404(
         Notice.objects.filter(school=request.school), pk=pk
@@ -125,7 +125,7 @@ def notice_edit(request, pk):
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 @require_POST
 def notice_delete(request, pk):
     notice = get_object_or_404(
@@ -136,14 +136,14 @@ def notice_delete(request, pk):
     return redirect("website:notices")
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def gallery_list(request):
     return render(request, "website/gallery.html", {
         "images": GalleryImage.objects.filter(school=request.school),
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def gallery_add(request):
     form = GalleryImageForm(
         request.POST or None,
@@ -161,7 +161,7 @@ def gallery_add(request):
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def gallery_edit(request, pk):
     image = get_object_or_404(
         GalleryImage.objects.filter(school=request.school), pk=pk
@@ -181,7 +181,7 @@ def gallery_edit(request, pk):
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 @require_POST
 def gallery_delete(request, pk):
     image = get_object_or_404(
@@ -192,14 +192,14 @@ def gallery_delete(request, pk):
     return redirect("website:gallery")
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def teacher_list(request):
     return render(request, "website/teachers.html", {
         "teachers": TeacherProfile.objects.filter(school=request.school),
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def teacher_add(request):
     form = TeacherProfileForm(
         request.POST or None,
@@ -217,7 +217,7 @@ def teacher_add(request):
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 def teacher_edit(request, pk):
     teacher = get_object_or_404(
         TeacherProfile.objects.filter(school=request.school), pk=pk
@@ -237,7 +237,7 @@ def teacher_edit(request, pk):
     })
 
 
-@role_required("admin")
+@role_required("admin", "webmaster")
 @require_POST
 def teacher_delete(request, pk):
     teacher = get_object_or_404(

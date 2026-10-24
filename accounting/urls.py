@@ -10,6 +10,7 @@ urlpatterns = [
     path("entries/", views.entry_list, name="entries"),
     path("entries/new/", views.entry_create, name="entry_create"),
     path("entries/<int:pk>/", views.entry_detail, name="entry_detail"),
+    path("entries/<int:pk>/download/", views.entry_download, name="entry_download"),
     path("entries/<int:pk>/edit/", views.entry_edit, name="entry_edit"),
     path("entries/<int:pk>/void/", views.entry_void, name="entry_void"),
     path("ledger/", views.ledger, name="ledger"),

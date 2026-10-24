@@ -7,11 +7,15 @@ class User(AbstractUser):
     ROLE_ADMIN = "admin"
     ROLE_ACCOUNTANT = "accountant"
     ROLE_TEACHER = "teacher"
+    ROLE_WEBMASTER = "webmaster"
+    ROLE_AUDITOR = "auditor"
     ROLE_STUDENT = "student"
     ROLE_CHOICES = [
         (ROLE_ADMIN, "Admin"),
         (ROLE_ACCOUNTANT, "Accountant"),
         (ROLE_TEACHER, "Teacher"),
+        (ROLE_WEBMASTER, "Webmaster"),
+        (ROLE_AUDITOR, "Auditor"),
         (ROLE_STUDENT, "Student"),
     ]
 
@@ -43,3 +47,29 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.role or 'superuser'})"
+
+    @property
+    def can_manage_fees(self):
+        return self.role in (
+            self.ROLE_ADMIN, self.ROLE_ACCOUNTANT, self.ROLE_TEACHER,
+        )
+
+    @property
+    def can_view_students(self):
+        return self.can_manage_fees
+
+    @property
+    def can_view_fees(self):
+        return self.can_manage_fees or self.role == self.ROLE_AUDITOR
+
+    @property
+    def can_manage_accounts(self):
+        return self.role in (self.ROLE_ADMIN, self.ROLE_ACCOUNTANT)
+
+    @property
+    def can_view_accounts(self):
+        return self.can_manage_accounts or self.role == self.ROLE_AUDITOR
+
+    @property
+    def can_manage_website(self):
+        return self.role in (self.ROLE_ADMIN, self.ROLE_WEBMASTER)

@@ -7,10 +7,12 @@
     <h4 class="mb-1">Simple Accounts</h4>
     <p class="text-muted mb-0">{{ request.school.name }} · Cash-basis cash book</p>
   </div>
+  {% if request.user.can_manage_accounts %}
   <div class="d-flex flex-wrap gap-2">
     <a class="btn btn-success" href="{% url 'accounting:entry_create' %}?type=receipt"><i class="bi bi-arrow-down-left me-1"></i>Money received</a>
     <a class="btn btn-outline-danger" href="{% url 'accounting:entry_create' %}?type=payment"><i class="bi bi-arrow-up-right me-1"></i>Money paid</a>
   </div>
+  {% endif %}
 </div>
 
 <div class="alert alert-light border d-flex gap-3 align-items-start mb-4">
@@ -100,8 +102,12 @@
         <div class="row g-2">
           <div class="col-sm-6"><a class="btn btn-light border text-start w-100 py-3" href="{% url 'accounting:entries' %}"><i class="bi bi-list-ul me-2 text-primary"></i>All transactions</a></div>
           <div class="col-sm-6"><a class="btn btn-light border text-start w-100 py-3" href="{% url 'accounting:ledger' %}"><i class="bi bi-journal-text me-2 text-success"></i>Cash book ledger</a></div>
+          {% if request.user.can_manage_accounts %}
           <div class="col-sm-6"><a class="btn btn-light border text-start w-100 py-3" href="{% url 'accounting:import' %}"><i class="bi bi-file-earmark-excel me-2 text-success"></i>Import Excel</a></div>
           <div class="col-sm-6"><a class="btn btn-light border text-start w-100 py-3" href="{% url 'accounting:setup' %}"><i class="bi bi-sliders me-2 text-secondary"></i>Opening balances</a></div>
+          {% else %}
+          <div class="col-sm-6"><a class="btn btn-light border text-start w-100 py-3" href="{% url 'accounting:export' %}"><i class="bi bi-download me-2 text-success"></i>Download accounts</a></div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -134,7 +140,7 @@
             <td class="text-end text-danger fw-semibold">{% if entry.transaction_type == 'payment' %}৳{{ entry.amount|floatformat:2 }}{% else %}—{% endif %}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="6" class="text-center text-muted py-5">No transactions yet. Record your first receipt or payment above.</td></tr>
+          <tr><td colspan="6" class="text-center text-muted py-5">No transactions yet.{% if request.user.can_manage_accounts %} Record your first receipt or payment above.{% endif %}</td></tr>
           {% endfor %}
         </tbody>
       </table>

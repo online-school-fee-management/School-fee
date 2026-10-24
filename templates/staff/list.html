@@ -33,7 +33,7 @@
         <tr {% if not s.is_active %}class="text-muted"{% endif %}>
           <td class="fw-semibold">{{ s.first_name|default:"—" }}{% if s.pk == request.user.pk %} <span class="badge bg-light text-dark border">You</span>{% endif %}</td>
           <td>{{ s.username }}</td>
-          <td><span class="badge {% if s.role == 'admin' %}bg-dark{% elif s.role == 'accountant' %}bg-primary{% else %}bg-info text-dark{% endif %}">{{ s.get_role_display }}</span></td>
+          <td><span class="badge {% if s.role == 'admin' %}bg-dark{% elif s.role == 'accountant' %}bg-primary{% elif s.role == 'webmaster' %}bg-success{% elif s.role == 'auditor' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %}">{{ s.get_role_display }}</span></td>
           <td class="small">{{ s.email|default:"—" }}</td>
           <td class="small">{{ s.last_login|date:"d M Y, h:i A"|default:"Never" }}</td>
           <td>{% if s.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>

@@ -4,6 +4,7 @@
 {% block page %}
 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
   <h4 class="mb-0">Fees Setup</h4>
+  {% if request.user.can_manage_fees %}
   <div class="d-flex gap-2">
     {% if year and structures %}
     <form method="post" action="{% url 'fees:fee_generate_all' %}">
@@ -14,6 +15,7 @@
     {% endif %}
     <a class="btn btn-primary" href="{% url 'fees:fee_add' %}"><i class="bi bi-plus-lg me-1"></i>Add Fee</a>
   </div>
+  {% endif %}
 </div>
 
 {% if not years %}
@@ -57,7 +59,7 @@
         <tr>
           <th>Class</th><th>Type</th><th>Title</th><th class="text-end">Amount</th><th>Due date</th>
           <th class="text-end">Students</th><th class="text-end">Expected</th><th class="text-end">Collected</th>
-          <th class="text-end">Actions</th>
+          {% if request.user.can_manage_fees %}<th class="text-end">Actions</th>{% endif %}
         </tr>
       </thead>
       <tbody>
@@ -71,6 +73,7 @@
           <td class="text-end">{{ s.dues_count }}</td>
           <td class="text-end">৳{{ s.total_net|default:0|floatformat:2 }}</td>
           <td class="text-end">৳{{ s.collected|default:0|floatformat:2 }}</td>
+          {% if request.user.can_manage_fees %}
           <td class="text-end">
             <div class="d-inline-flex gap-1">
               {% if s.missing %}
@@ -84,9 +87,10 @@
               </form>
             </div>
           </td>
+          {% endif %}
         </tr>
         {% empty %}
-        <tr><td colspan="9" class="text-center text-muted py-4">No fees set up for this selection. Click “Add Fee”.</td></tr>
+        <tr><td colspan="{% if request.user.can_manage_fees %}9{% else %}8{% endif %}" class="text-center text-muted py-4">No fees set up for this selection.{% if request.user.can_manage_fees %} Click “Add Fee”.{% endif %}</td></tr>
         {% endfor %}
       </tbody>
     </table>

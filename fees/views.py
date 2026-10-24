@@ -14,7 +14,8 @@ from academics.models import AcademicYear, SchoolClass
 from .models import FeeStructure, StudentFee
 from .services import generate_dues, missing_students_count
 
-ROLES = ("admin", "accountant")
+MANAGE_ROLES = ("admin", "accountant", "teacher")
+VIEW_ROLES = ("admin", "accountant", "teacher", "auditor")
 TYPES = {value for value, _ in FeeStructure.TYPE_CHOICES}
 MONEY = DecimalField(max_digits=14, decimal_places=2)
 
@@ -55,7 +56,7 @@ def _list_url(year=None):
 # List
 # ---------------------------------------------------------------------------
 
-@role_required(*ROLES)
+@role_required(*VIEW_ROLES)
 def fee_list(request):
     school = request.school
     years = AcademicYear.objects.filter(school=school)
@@ -105,7 +106,7 @@ def fee_list(request):
 # Add (one fee -> many classes at once)
 # ---------------------------------------------------------------------------
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 def fee_add(request):
     school = request.school
     classes = SchoolClass.objects.filter(school=school)
@@ -182,7 +183,7 @@ def fee_add(request):
 # Edit / delete / generate
 # ---------------------------------------------------------------------------
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 def fee_edit(request, pk):
     school = request.school
     fee = get_object_or_404(
@@ -247,7 +248,7 @@ def fee_edit(request, pk):
     })
 
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 @require_POST
 def fee_delete(request, pk):
     fee = get_object_or_404(FeeStructure, pk=pk, school=request.school)
@@ -270,7 +271,7 @@ def fee_delete(request, pk):
     return redirect(_list_url(year))
 
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 @require_POST
 def fee_generate(request, pk):
     fee = get_object_or_404(FeeStructure, pk=pk, school=request.school)
@@ -282,7 +283,7 @@ def fee_generate(request, pk):
     return redirect(_list_url(fee.academic_year))
 
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 @require_POST
 def fee_generate_all(request):
     school = request.school

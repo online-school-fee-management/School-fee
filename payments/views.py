@@ -18,7 +18,8 @@ from fees.models import FeeStructure, StudentFee
 from .models import Payment
 from .services import PaymentError, parse_money, record_payment, void_payment
 
-ROLES = ("admin", "accountant")
+MANAGE_ROLES = ("admin", "accountant", "teacher")
+VIEW_ROLES = ("admin", "accountant", "teacher", "auditor")
 MONEY = DecimalField(max_digits=14, decimal_places=2)
 STATUSES = ("unpaid", "partial", "paid", "overdue")
 
@@ -113,7 +114,7 @@ def _filtered_dues(request):
     return qs, filters
 
 
-@role_required(*ROLES)
+@role_required(*VIEW_ROLES)
 def payment_status(request):
     school = request.school
     qs, f = _filtered_dues(request)
@@ -145,7 +146,7 @@ def payment_status(request):
     })
 
 
-@role_required(*ROLES)
+@role_required(*VIEW_ROLES)
 def payment_export(request):
     qs, _ = _filtered_dues(request)
 
@@ -174,7 +175,7 @@ def payment_export(request):
 # Student ledger
 # ---------------------------------------------------------------------------
 
-@role_required(*ROLES)
+@role_required(*VIEW_ROLES)
 def student_ledger(request, student_id):
     school = request.school
     student = get_object_or_404(
@@ -206,7 +207,7 @@ def student_ledger(request, student_id):
 # Collect a payment
 # ---------------------------------------------------------------------------
 
-@role_required(*ROLES)
+@role_required(*MANAGE_ROLES)
 def collect(request, pk):
     school = request.school
     fee = get_object_or_404(
@@ -314,7 +315,7 @@ def receipt(request, pk):
         pk=pk, school=school,
     )
 
-    allowed = user.role in ROLES or (
+    allowed = user.role in VIEW_ROLES or (
         user.role == "student" and payment.student_fee.student.user_id == user.id
     )
     if not allowed:

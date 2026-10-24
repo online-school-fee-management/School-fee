@@ -7,7 +7,7 @@ from django.conf import settings
 # (Or put your own PLANS = {...} / TRIAL_DAYS = 30 in settings.py to override.)
 #
 #   student_limit    : most student records a school can have. None = unlimited.
-#   staff_limit      : most ACTIVE staff logins (admin + accountant + teacher). None = unlimited.
+#   staff_limit      : most ACTIVE staff logins (every non-student role). None = unlimited.
 #   online_payments  : can students pay from the student portal?
 #   price_monthly    : price in taka per month. None = cannot be bought (trial / free).
 #

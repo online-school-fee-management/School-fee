@@ -22,6 +22,8 @@ class Command(BaseCommand):
             ("admin", "admin", "School Admin"),
             ("accountant", "accountant", "School Accountant"),
             ("teacher", "teacher", "Class Teacher"),
+            ("webmaster", "webmaster", "Website Manager"),
+            ("auditor", "auditor", "Accounts Auditor"),
             ("student", "student", "Demo Student"),
         ]
         for username, role, full_name in users:
