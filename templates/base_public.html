@@ -660,10 +660,20 @@
         <a href="#teachers">Teachers</a>
         <a href="#gallery">Gallery</a>
         {% if request.user.is_authenticated and request.user.school_id == school.id %}
-        <a class="btn btn-primary" href="{% url 'dashboard:home' %}">School Dashboard <i class="bi bi-arrow-right"></i></a>
-        {% else %}
-        <a class="btn btn-primary" href="{% url 'accounts:login' %}">Portal Login <i class="bi bi-arrow-right"></i></a>
-        {% endif %}
+    {% if request.user.role == "teacher" %}
+        <a class="btn btn-primary" href="{% url 'dashboard:home' %}">
+            School Dashboard
+        </a>
+    {% elif request.user.role == "student" %}
+        <a class="btn btn-primary" href="/portal/">
+            Student Portal
+        </a>
+    {% endif %}
+{% else %}
+    <a class="btn btn-primary" href="{% url 'accounts:login' %}">
+        Portal Login
+    </a>
+{% endif %}
       </nav>
     </div>
   </header>
