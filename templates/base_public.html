@@ -194,12 +194,21 @@
         var(--hero-image) center / cover no-repeat;
       content: "";
     }
+    /* Hero Inner Content */
+     .hero-inner {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    padding: 100px 32px;
+}
+
+/* Desktop view */
+@media (min-width: 1200px) {
     .hero-inner {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      padding-block: 100px;
+        padding-left: 48px;
     }
+}
+/* Hero Inner Content */
     .hero-content { max-width: 750px; }
     .hero .eyebrow { color: #d9efe7; }
     .hero h1 {
@@ -224,7 +233,7 @@
       font-size: .8rem;
     }
     .hero-note span { display: inline-flex; align-items: center; gap: .45rem; }
-    .section { padding-block: 95px; }
+    .section { padding: 95px 0; }
     .section-alt { background: #f1f7f3; }
     .section-head {
       display: flex;
@@ -583,10 +592,10 @@
       .utility-links span:nth-child(2) { display: none; }
       .utility-links { gap: .7rem; }
       .hero { min-height: 560px; }
-      .hero-inner { padding-block: 75px; }
+      .hero-inner { padding: 75px 0; }
       .hero h1 { font-size: clamp(2.6rem, 13vw, 4rem); }
       .hero-note { gap: .8rem; }
-      .section { padding-block: 70px; }
+      .section { padding: 70px 0; }
       .section-head { display: block; }
       .section-head p { margin-top: 1rem; }
       .notice-grid, .about-grid, .admissions-inner, .footer-grid { grid-template-columns: 1fr; }
