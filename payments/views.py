@@ -4,8 +4,9 @@ import datetime
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
 from django.core.paginator import Paginator
+from django.core.signing import BadSignature, SignatureExpired, loads
 from django.db.models import Count, DecimalField, ExpressionWrapper, F, Q, Sum
-from django.http import HttpResponse, HttpResponseForbidden
+from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
@@ -16,6 +17,11 @@ from accounting.models import CashTransaction
 from fees.models import FeeStructure, StudentFee
 
 from .models import Payment
+from .receipts import (
+    VERIFICATION_SALT,
+    qr_data_uri,
+    verification_path,
+)
 from .services import PaymentError, parse_money, record_payment, void_payment
 
 MANAGE_ROLES = ("admin", "accountant", "teacher")
@@ -321,9 +327,52 @@ def receipt(request, pk):
     if not allowed:
         return HttpResponseForbidden("You do not have permission.")
 
+    verify_path = verification_path(payment)
+    verify_url = request.build_absolute_uri(verify_path)
     return render(request, "payments/receipt.html", {
         "payment": payment,
         "fee": payment.student_fee,
         "student": payment.student_fee.student,
         "school": school,
+        "verification_url": verify_url,
+        "verification_qr": qr_data_uri(verify_url),
+    })
+
+
+def verify_receipt(request, pk, token):
+    """Public receipt verification reached by scanning the printed QR code."""
+    school = getattr(request, "school", None)
+    if school is None:
+        raise Http404
+
+    try:
+        payload = loads(token, salt=VERIFICATION_SALT)
+    except (BadSignature, SignatureExpired):
+        raise Http404
+
+    if (
+        not isinstance(payload, dict)
+        or payload.get("payment_id") != pk
+        or payload.get("school_id") != school.pk
+    ):
+        raise Http404
+
+    payment = get_object_or_404(
+        Payment.objects.select_related(
+            "student_fee",
+            "student_fee__student",
+            "student_fee__student__school_class",
+            "student_fee__structure",
+            "student_fee__structure__school_class",
+            "student_fee__structure__academic_year",
+        ),
+        pk=pk,
+        school=school,
+    )
+    return render(request, "payments/verify_receipt.html", {
+        "payment": payment,
+        "fee": payment.student_fee,
+        "student": payment.student_fee.student,
+        "school": school,
+        "verified_at": timezone.now(),
     })

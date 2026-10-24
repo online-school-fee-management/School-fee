@@ -10,16 +10,20 @@
     .receipt { max-width: 720px; margin: 24px auto; background: #fff; padding: 36px; border: 1px solid #dde2e8; }
     .receipt h2 { letter-spacing: .5px; }
     .label { color: #6c757d; font-size: .8rem; text-transform: uppercase; letter-spacing: .5px; }
+    .verification { border: 1px solid #d7e7df; border-radius: .75rem; background: #f6fbf8; }
+    .verification-qr { width: 132px; height: 132px; padding: 7px; background: #fff; }
+    .verification-url { word-break: break-all; font-size: .68rem; color: #667085; }
     @media print {
       body { background: #fff; }
       .receipt { border: 0; margin: 0; padding: 0; max-width: none; }
       .no-print { display: none !important; }
+      .verification { break-inside: avoid; }
     }
   </style>
 </head>
 <body>
   <div class="no-print text-center mt-3">
-    <button class="btn btn-primary" onclick="window.print()">Print / Save as PDF</button>
+    <button class="btn btn-primary" onclick="window.print()">Download / Save as PDF</button>
     <button class="btn btn-light" onclick="window.close()">Close</button>
   </div>
 
@@ -79,6 +83,17 @@
       <div class="col-6 text-end">
         <div class="label">Balance of this fee</div>
         <div>৳{{ fee.due_amount|floatformat:2 }}{% if fee.due_amount == 0 %} (fully paid){% endif %}</div>
+      </div>
+    </div>
+
+    <div class="verification d-flex flex-column flex-sm-row align-items-center gap-3 p-3 mb-4">
+      <img class="verification-qr flex-shrink-0" src="{{ verification_qr }}" alt="QR code to verify receipt {{ payment.receipt_no }}">
+      <div class="text-center text-sm-start">
+        <div class="label text-success">Online receipt verification</div>
+        <div class="fw-semibold">Scan this QR code to verify the payment</div>
+        <div class="small text-muted">Anyone can check that this receipt matches the school's payment record. No login is required.</div>
+        <a class="small" href="{{ verification_url }}" target="_blank" rel="noopener">Open verification page</a>
+        <div class="verification-url mt-1">{{ verification_url }}</div>
       </div>
     </div>
 
