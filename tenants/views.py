@@ -43,10 +43,10 @@ def _base_host(request):
 def school_url(request, subdomain, path="/"):
     return f"{request.scheme}://{subdomain}.{_base_host(request)}{path}"
 
-
 def _client_ip(request):
-    # Behind a proxy/load balancer, configure it so REMOTE_ADDR is the real client.
-    return request.META.get("REMOTE_ADDR", "unknown")
+    # Nginx sets X-Real-IP to the real visitor address (it overwrites any
+    # value sent by the client). REMOTE_ADDR is used on your own PC.
+    return request.META.get("HTTP_X_REAL_IP") or request.META.get("REMOTE_ADDR", "unknown")
 
 
 def subdomain_error(value):
